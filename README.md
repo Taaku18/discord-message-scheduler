@@ -173,8 +173,12 @@ Ensure you have the latest version of [Docker](https://docs.docker.com/get-docke
 
 > During the experimental phase, you will have to build your own image. A pre-built image will be provided later. 
 
-1. Rename `.env.example` to `.env` and set your environment variables (<a href="#installation">see step 3 above</a>)
-2. Build the image 
+1. Clone or [download](https://github.com/Taaku18/discord-message-scheduler/archive/refs/heads/main.zip) the repo
+   ```sh
+   git clone https://github.com/Taaku18/discord-message-scheduler.git
+   ```
+2. Rename `.env.example` to `.env` and set your environment variables (<a href="#installation">see step 3 above</a>)
+3. Build the image 
    ```sh
    docker build -t dms:latest .
    ```
