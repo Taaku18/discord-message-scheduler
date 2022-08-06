@@ -1,0 +1,19 @@
+services:
+  bot:
+    image: DMS:latest
+    container_name: discord-message-scheduler
+    env_file: .env
+    dns:
+      - 1.1.1.1
+      - 1.0.0.1
+    network_mode: "host"
+    volumes:
+      - type: bind
+        source: ./schedule.sqlite
+        target: /schedule.sqlite
+    restart: unless-stopped
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10mb"
+        max-file: "5"

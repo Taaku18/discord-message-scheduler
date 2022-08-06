@@ -72,6 +72,7 @@ Discord Message Scheduler provides a convenient bot interface to grant users the
 * Uses SQLite database
 * Modern Discord Modal interface
 * Easy to set up
+* Docker support
 
 ### Built With
 
@@ -160,6 +161,22 @@ python3.10 start.py
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
 
+<!-- Docker setup -->
+## Docker (experimental)
+
+Alternatively, you can use Docker to deploy this bot. 
+
+1. Rename `.env.example` to `.env` and set your environment variables (<a href="#installation">see step 3 above</a>)
+2. Build the image
+   ```sh
+   docker build -t DMS:latest .
+   ```
+3. Start the bot
+   ```sh
+   docker compose up
+   ```
+
+<p align="right">(<a href="#readme-top">back to top</a>)</p>
 
 <!-- ROADMAP -->
 ## Roadmap
@@ -169,6 +186,8 @@ python3.10 start.py
     - [ ] Allow server staff access to these commands
 - [ ] Implement reporting interface to remove abusive scheduled messages
 - [ ] Permissions system
+- [ ] Add GitHub workflow for testing, linting, building Docker image
+- [ ] Create a Docker image
 
 See the [open issues](https://github.com/github_username/repo_name/issues) for a full list of proposed features (and known issues).
 
