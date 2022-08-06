@@ -7,8 +7,10 @@ from __future__ import annotations
 
 import logging
 import os
+import time
 from distutils.util import strtobool
 
+from dateutil.tz import gettz
 from dotenv import load_dotenv
 
 from discord import Colour
@@ -21,6 +23,7 @@ __all__ = [
     "SCHEDULER_DATABASE_PATH",
     "DEBUG_GUILDS",
     "SYNC_SLASH_COMMANDS",
+    "DEFAULT_TIMEZONE",
 ]
 
 logger = logging.getLogger(__name__)
@@ -77,3 +80,14 @@ else:
     DEBUG_GUILDS = []
 
 SYNC_SLASH_COMMANDS = strtobool(os.getenv("SYNC_SLASH_COMMANDS", "on"))
+
+original_tz = os.getenv("TZ")
+DEFAULT_TIMEZONE = os.getenv("DEFAULT_TIMEZONE", original_tz or "America/Vancouver")
+if gettz(DEFAULT_TIMEZONE) is not None and os.name != "nt":  # time.tzset() only support Unix systems
+    os.environ["TZ"] = DEFAULT_TIMEZONE
+    try:
+        time.tzset()
+    except Exception as e:
+        logger.warning("Failed to set timezone.", exc_info=e)
+        if original_tz is not None:  # reverts timezone
+            os.environ["TZ"] = original_tz

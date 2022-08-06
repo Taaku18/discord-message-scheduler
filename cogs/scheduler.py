@@ -21,7 +21,7 @@ import discord
 from discord.ext import commands
 
 from src.commands import Cog
-from src.env import COLOUR, SCHEDULER_DATABASE_PATH, DEBUG_MODE
+from src.env import COLOUR, SCHEDULER_DATABASE_PATH, DEBUG_MODE, DEFAULT_TIMEZONE
 
 if TYPE_CHECKING:
     from src.bot import Bot
@@ -117,7 +117,7 @@ def get_schedule_modal(defaults: ScheduleModal | None = None) -> Type[ScheduleMo
     """
     message_default = defaults and defaults.message.value
     time_default = defaults and defaults.time.value
-    timezone_default = defaults and defaults.timezone.value or "America/Vancouver"
+    timezone_default = defaults and defaults.timezone.value or DEFAULT_TIMEZONE
     repeat_default = defaults and defaults.repeat.value or "0"
 
     class _ScheduleModal(discord.ui.Modal, title="Schedule Creator"):
