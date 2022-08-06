@@ -145,7 +145,7 @@ You will also need a Discord bot.
        PREFIX=?
        SYNC_SLASH_COMMANDS=on
       ```
-   `SYNC_SLASH_COMMANDS` should be "on" the first time you start the bot and after updating. It can be set to "off" during normal usage (since syncing slash commands may take a long time).
+   `SYNC_SLASH_COMMANDS` should be set to "on" the first time you start the bot and every time you update. It should be set to "off" during normal usage since syncing slash commands may take a long time.
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 

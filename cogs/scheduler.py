@@ -8,6 +8,7 @@ from __future__ import annotations
 import asyncio
 import heapq
 import logging
+import re
 import warnings
 from secrets import token_hex
 from typing import TYPE_CHECKING, NamedTuple, Type
@@ -29,6 +30,20 @@ if TYPE_CHECKING:
 
 logger = logging.getLogger(__name__)
 
+DB_VERSION = 1
+
+
+class SanitizedScheduleEvent(NamedTuple):
+    """
+    Represents a single scheduled message event after modal sanitization.
+    """
+
+    author: discord.User | discord.Member
+    channel: discord.TextChannel
+    message: str
+    time: arrow.Arrow
+    repeat: float | None
+
 
 class ScheduleEvent(NamedTuple):
     """
@@ -40,6 +55,18 @@ class ScheduleEvent(NamedTuple):
     message: str
     time: arrow.Arrow
     repeat: float | None
+    mention: bool
+
+    @classmethod
+    def from_sanitized(cls, event: SanitizedScheduleEvent, mention: bool) -> ScheduleEvent:
+        """
+        Converts a SanitizedScheduleEvent to ScheduleEvent.
+
+        :param event: The sanitized event.
+        :param mention: Whether mention is allowed.
+        :return: The converted ScheduleEvent.
+        """
+        return cls(*(event + (mention,)))
 
 
 class SavedScheduleEvent(NamedTuple):
@@ -55,6 +82,7 @@ class SavedScheduleEvent(NamedTuple):
     next_event_time: int
     repeat: float | int | None
     canceled: bool
+    mention: bool
 
     @classmethod
     def from_row(cls, row: aiosqlite.Row) -> SavedScheduleEvent:
@@ -81,6 +109,7 @@ class SavedScheduleEvent(NamedTuple):
             current_timestamp + self.repeat * 60,
             self.repeat,
             self.canceled,
+            self.mention,
         )
 
     def __lt__(self, other: SavedScheduleEvent) -> bool:
@@ -154,7 +183,7 @@ def get_schedule_modal(defaults: ScheduleModal | None = None) -> Type[ScheduleMo
             self.channel = channel
             super().__init__()
 
-        def sanitize_response(self, interaction: discord.Interaction) -> ScheduleEvent:
+        def sanitize_response(self, interaction: discord.Interaction) -> SanitizedScheduleEvent:
             """
             Sanitize the modal entries and raise appropriate errors.
 
@@ -203,7 +232,8 @@ def get_schedule_modal(defaults: ScheduleModal | None = None) -> Type[ScheduleMo
                             raise InvalidRepeat("Repeat cannot be less than 12 seconds (debug mode is active).")
                         else:
                             raise InvalidRepeat("Repeat cannot be less than one hour.")
-            return ScheduleEvent(interaction.user, self.channel, self.message.value, time, repeat)
+
+            return SanitizedScheduleEvent(interaction.user, self.channel, self.message.value, time, repeat)
 
         @property
         def acceptable_formats(self) -> list[str]:
@@ -247,39 +277,36 @@ def get_schedule_modal(defaults: ScheduleModal | None = None) -> Type[ScheduleMo
                     name="Valid time formats:", value="\n".join(self.acceptable_formats) + "\n- And More..."
                 )
             else:
-                # Sanitize successfully
-                try:
-                    await self.scheduler.save_event(event)
-                except Exception as e:
-                    # Something unexpected went wrong
-                    err_code = token_hex(5)
-                    logger.error("Something went wrong while saving event. Code: %s.", err_code, exc_info=e)
-                    embed = discord.Embed(
-                        description="An unexpected error occurred, try again later. "
-                        f"Please report this to the bot author with error code `{err_code}`.",
-                        colour=COLOUR,
-                    )
-                    await interaction.response.send_message(embed=embed, ephemeral=True)
-                    return
+                # Check if the message contains a mention and both author
+                mentions = re.search(r"@(everyone|here|[!&]?[0-9]{17,20})", event.message)
 
-                embed = discord.Embed(
-                    title="Scheduled Message Created",
-                    colour=COLOUR,
-                )
-                embed.add_field(name="Message", value=event.message, inline=False)
-                embed.add_field(name="Channel", value=event.channel.mention, inline=True)
-                embed.add_field(name="Time", value=f"<t:{int(event.time.timestamp())}>", inline=True)
-                if event.repeat is None:
-                    embed.add_field(name="Repeat", value=f"Disabled", inline=True)
-                else:
-                    if event.repeat.is_integer():
-                        repeat_message = f"Every {int(event.repeat)} minute{'s' if event.repeat != 1 else ''}"
+                if mentions is not None:
+                    perms_author = self.channel.permissions_for(event.author)
+                    perms_bot = self.channel.permissions_for(self.channel.guild.me)
+
+                    # This is a privileged mention (@everyone, @here, @role)
+                    if mentions.group(1) in {"everyone", "here"} or mentions.group(1).startswith("&"):
+                        # Bot will need permissions to ping as well
+                        check = perms_author.mention_everyone and perms_bot.mention_everyone
                     else:
-                        repeat_message = f"Every {event.repeat:.2f} minute{'s' if event.repeat != 1 else ''}"
-                    embed.add_field(name="Repeat", value=repeat_message, inline=True)
+                        check = perms_author.mention_everyone
+                    if check:  # if pinging is a possibility
+                        embed = discord.Embed(
+                            title="This scheduled message contains mentions",
+                            description="Click **Yes** if the mentions should ping "
+                            "its members, otherwise click **No**.\n\n"
+                            "Alternatively, click **Edit** to revise your message.",
+                            colour=COLOUR,
+                        )
+                        embed.add_field(name="Message", value=event.message, inline=False)
+                        await interaction.response.send_message(
+                            embed=embed, view=ScheduleMentionView(self, event), ephemeral=True
+                        )
+                        return
 
-                embed.set_footer(text=f"{event.author} has created a scheduled message.")
-                await interaction.response.send_message(embed=embed)
+                # Message has no mentions, or the bot or user cannot mention in this channel,
+                # so don't bother asking
+                await self.scheduler.save_event(interaction, ScheduleEvent.from_sanitized(event, False))
                 return
 
             # If failed
@@ -346,6 +373,60 @@ class ScheduleEditView(discord.ui.View):
         self.stop()
 
 
+class ScheduleMentionView(discord.ui.View):
+    """
+    A single-button view to ask if the user wishes to mention in their scheduled message.
+    """
+
+    def __init__(self, last_schedule_modal: ScheduleModal, event: SanitizedScheduleEvent) -> None:
+        """
+        :param last_schedule_modal: The previous ScheduleModal before the retry.
+        :param event: The sanitized event from the last modal.
+        """
+        self.last_schedule_modal = last_schedule_modal
+        self.event = event
+        super().__init__()
+
+    # noinspection PyUnusedLocal
+    @discord.ui.button(label="Yes", style=discord.ButtonStyle.green)
+    async def yes(self, interaction: discord.Interaction, button: discord.ui.Button) -> None:
+        """
+        The "Yes" button for the view.
+        """
+        try:
+            await self.last_schedule_modal.scheduler.save_event(
+                interaction, ScheduleEvent.from_sanitized(self.event, True)
+            )
+        finally:
+            self.stop()
+
+    # noinspection PyUnusedLocal
+    @discord.ui.button(label="No", style=discord.ButtonStyle.green)
+    async def no(self, interaction: discord.Interaction, button: discord.ui.Button) -> None:
+        """
+        The "No" button for the view.
+        """
+        try:
+            await self.last_schedule_modal.scheduler.save_event(
+                interaction, ScheduleEvent.from_sanitized(self.event, False)
+            )
+        finally:
+            self.stop()
+
+    # noinspection PyUnusedLocal
+    @discord.ui.button(label="Edit", style=discord.ButtonStyle.green)
+    async def edit(self, interaction: discord.Interaction, button: discord.ui.Button) -> None:
+        """
+        The "Edit" button for the view.
+        """
+        await interaction.response.send_modal(
+            get_schedule_modal(self.last_schedule_modal)(
+                self.last_schedule_modal.scheduler, self.last_schedule_modal.channel
+            )
+        )
+        self.stop()
+
+
 class Scheduler(Cog):
     """A general category for all my commands."""
 
@@ -390,28 +471,17 @@ class Scheduler(Cog):
         logger.debug("Closing DB connection.")
         await self.db.close()
 
-    async def init_db(self) -> None:
+    async def _update_to_version_0(self) -> None:
         """
-        Initiates the SQLite database.
-        """
-        logger.debug("Initiating DB connection.")
-        self.db = await aiosqlite.connect(SCHEDULER_DATABASE_PATH)
+        Update DB to version 0.
 
-        # Checks if the table exists TODO: doesn't verify schema yet!
+        Changes:
+          - Create the Scheduler table
+          - Add 3 indices to Scheduler
+        """
+        logger.info("[orange]Updating DB version to 0[/orange]", extra={"markup": True})
         async with self.db.execute(
             r"""
-            SELECT name 
-                FROM sqlite_master 
-                WHERE type='table' 
-                    AND name='Scheduler'
-        """
-        ) as cur:
-            row = await cur.fetchone()
-
-        if row is None:  # the table does not exist
-            # create database if db doesn't exist
-            async with self.db.execute(
-                r"""
                 CREATE TABLE Scheduler (
                     id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
                     message VARCHAR(1000) NOT NULL,
@@ -423,29 +493,102 @@ class Scheduler(Cog):
                     canceled BOOLEAN NOT NULL DEFAULT 0 CHECK (canceled IN (0, 1))
                 )
             """
+        ):
+            pass
+
+        async with self.db.execute(
+            r"""
+                CREATE INDEX IF NOT EXISTS idx_scheduler_time ON Scheduler (next_event_time)
+            """
+        ):
+            pass
+
+        async with self.db.execute(
+            r"""
+                CREATE INDEX IF NOT EXISTS idx_scheduler_guild_author ON Scheduler (guild_id, author_id)
+            """
+        ):
+            pass
+
+        async with self.db.execute(
+            r"""
+                CREATE INDEX IF NOT EXISTS idx_scheduler_canceled ON Scheduler (canceled)
+            """
+        ):
+            pass
+
+    async def _update_to_version_1(self) -> None:
+        """
+        Update DB to version 1.
+
+        Changes:
+          - Add version=1 row to Meta table
+          - Add mention column to Scheduler
+        """
+        logger.info("[orange]Updating DB version to 1[/orange]", extra={"markup": True})
+        async with self.db.execute(
+            r"""
+            INSERT INTO Meta(name, value)
+            VALUES ('version', 1)
+        """
+        ):
+            pass
+
+        async with self.db.execute(
+            r"""
+            ALTER TABLE Scheduler 
+            ADD COLUMN mention BOOLEAN NOT NULL DEFAULT 0 CHECK (canceled IN (0, 1))
+        """
+        ):
+            pass
+
+    async def init_db(self) -> None:
+        """
+        Initiates the SQLite database.
+        """
+        logger.debug("Initiating DB connection.")
+        self.db = await aiosqlite.connect(SCHEDULER_DATABASE_PATH)
+
+        # Checks if the meta table exists
+        async with self.db.execute(
+            r"""
+            SELECT name 
+                FROM sqlite_master 
+                WHERE type='table' 
+                    AND name='Meta'
+        """
+        ) as cur:
+            meta_exists = (await cur.fetchone()) is not None
+
+        # If the meta table does not exist, this is means this is the initial database commit
+        # or DB version is 0
+        if not meta_exists:
+            # Create the meta table
+            async with self.db.execute(
+                r"""
+                CREATE TABLE Meta (
+                    name VARCHAR(10) PRIMARY KEY NOT NULL,
+                    value INTEGER NOT NULL
+                )
+            """
             ):
                 pass
 
-        async with self.db.execute(
-            r"""
-            CREATE INDEX IF NOT EXISTS idx_scheduler_time ON Scheduler (next_event_time)
-        """
-        ):
-            pass
+            # Checks if the scheduler table exists
+            async with self.db.execute(
+                r"""
+                    SELECT name 
+                        FROM sqlite_master 
+                        WHERE type='table' 
+                            AND name='Scheduler'
+                """
+            ) as cur:
+                scheduler_exists = (await cur.fetchone()) is not None
 
-        async with self.db.execute(
-            r"""
-            CREATE INDEX IF NOT EXISTS idx_scheduler_guild_author ON Scheduler (guild_id, author_id)
-        """
-        ):
-            pass
-
-        async with self.db.execute(
-            r"""
-            CREATE INDEX IF NOT EXISTS idx_scheduler_canceled ON Scheduler (canceled)
-        """
-        ):
-            pass
+            # It's the initial DB commit, this will update to version 0
+            if not scheduler_exists:
+                await self._update_to_version_0()
+            await self._update_to_version_1()
 
         await self.db.commit()  # commit the changes
 
@@ -455,8 +598,8 @@ class Scheduler(Cog):
         async def _insert_schedule(self, event: ScheduleEvent) -> SavedScheduleEvent:
             async with self.db.execute(
                 r"""
-                    INSERT INTO Scheduler (message, guild_id, channel_id, author_id, next_event_time, repeat)
-                        VALUES ($message, $guild_id, $channel_id, $author_id, $next_event_time, $repeat)
+                    INSERT INTO Scheduler (message, guild_id, channel_id, author_id, next_event_time, repeat, mention)
+                        VALUES ($message, $guild_id, $channel_id, $author_id, $next_event_time, $repeat, $mention)
                         RETURNING *
                 """,
                 {
@@ -466,6 +609,7 @@ class Scheduler(Cog):
                     "author_id": event.author.id,
                     "next_event_time": int(event.time.timestamp()),
                     "repeat": event.repeat,
+                    "mention": event.mention,
                 },
             ) as cur:
                 event_db = SavedScheduleEvent.from_row(await cur.fetchone())
@@ -503,7 +647,52 @@ class Scheduler(Cog):
             await self.db.commit()
             return event_db
 
-    async def save_event(self, event: ScheduleEvent) -> None:
+    async def save_event(self, interaction: discord.Interaction, event: ScheduleEvent) -> None:
+        """
+        Saves the ScheduleEvent into database and adds to the event heap.
+
+        :param interaction: The interaction context.
+        :param event: The created SanitizedScheduleEvent object from the form.
+        """
+        try:
+            await self._save_event(event)
+        except Exception as e:
+            # Something unexpected went wrong
+            err_code = token_hex(5)
+            logger.error("Something went wrong while saving event. Code: %s.", err_code, exc_info=e)
+            embed = discord.Embed(
+                description="An unexpected error occurred, try again later. "
+                f"Please report this to the bot author with error code `{err_code}`.",
+                colour=COLOUR,
+            )
+            await interaction.response.send_message(embed=embed, ephemeral=True)
+            return
+
+        embed = discord.Embed(
+            title="Scheduled Message Created",
+            colour=COLOUR,
+        )
+        embed.add_field(name="Message", value=event.message, inline=False)
+        embed.add_field(name="Channel", value=event.channel.mention, inline=True)
+        if event.repeat is None:
+            embed.add_field(name="Repeat", value=f"Disabled", inline=True)
+        else:
+            if event.repeat.is_integer():
+                repeat_message = f"Every {int(event.repeat)} minute{'s' if event.repeat != 1 else ''}"
+            else:
+                repeat_message = f"Every {event.repeat:.2f} minute{'s' if event.repeat != 1 else ''}"
+            embed.add_field(name="Repeat", value=repeat_message, inline=True)
+
+        mentions = re.search(r"@(everyone|here|[!&]?[0-9]{17,20})", event.message)
+        if mentions is not None:  # has mentions
+            embed.add_field(name="Ping Enabled", value="Yes" if event.mention else "No", inline=True)
+        embed.add_field(name="Time", value=f"<t:{int(event.time.timestamp())}>", inline=False)
+
+        embed.set_footer(text=f"{event.author} has created a scheduled message.")
+        await interaction.response.send_message(embed=embed)
+        return
+
+    async def _save_event(self, event: ScheduleEvent) -> None:
         """
         Saves the ScheduleEvent into database and adds to the event heap.
 
@@ -514,12 +703,13 @@ class Scheduler(Cog):
 
         logger.info("Added schedule into database with ID %d.", event_db.id)
         logger.info(
-            "Message (preview): %s\nGuild: %s\nChannel: %s\nAuthor: %s\nRepeat: %s\nTime: %s",
+            "Message (preview): %s\nGuild: %s\nChannel: %s\nAuthor: %s\nRepeat: %s\nMention: %s\nTime: %s",
             event.message[:80],
             event.channel.guild,
             event.channel,
             event.author,
             event.repeat,
+            event.mention,
             event.time,
         )
 
@@ -570,22 +760,29 @@ class Scheduler(Cog):
                 return False
 
         # Check if the still user has permission
-        perms = channel.permissions_for(author)
-        if not perms.read_messages or not perms.send_messages:
+        perms_author = channel.permissions_for(author)
+        if not perms_author.read_messages or not perms_author.send_messages:
             logger.warning("Event with ID %d author doesn't have perms.", event.id)
             return False
 
         # Check if the bot still has permission
-        perms = channel.permissions_for(guild.me)
-        if not perms.read_messages or not perms.send_messages:
+        perms_bot = channel.permissions_for(guild.me)
+        if not perms_bot.read_messages or not perms_bot.send_messages:
             logger.warning("Event with ID %d bot doesn't have perms.", event.id)
             return False
 
-        await channel.send(event.message, allowed_mentions=discord.AllowedMentions.none())
+        if event.mention and perms_author.mention_everyone:  # if mentions is enabled and author still has perms
+            allowed_mentions = discord.AllowedMentions.all()
+        else:
+            allowed_mentions = discord.AllowedMentions.none()
+        await channel.send(event.message, allowed_mentions=allowed_mentions)
         # TODO: add a "report abuse" feature/command, save all sent msg in a db table with the id
         return True
 
     async def scheduler_event_loop(self) -> None:
+        """
+        The main scheduler event loop, checks every second.
+        """
         await self.bot.wait_until_ready()
 
         while not self.bot.is_closed():
