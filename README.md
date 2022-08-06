@@ -110,7 +110,7 @@ This bot is build on Python 3.10. You will need to download the latest version o
 You will also need a Discord bot.
 1. Create a Discord application at [https://discord.com/developers/applications](https://discord.com/developers/applications)
 2. Within the settings page, navigate to the **Bot** tab and create a bot
-3. (Optional) Disable **PUBLIC BOT** if you don't want others to invite your bot
+3. (Optional) If you don't want others to invite your bot, then disable **PUBLIC BOT**.
 4. Enable **SERVER MEMBERS INTENT** and **MESSAGE CONTENT INTENT** under the Privileged Gateway Intents settings
 5. Navigate to **Oauth2** → **URL Generator** tab, click both **bot** and **applications.commands**, and check the following buttons:
    * Read Messages/View Channels
