@@ -15,6 +15,7 @@ from typing import TYPE_CHECKING, NamedTuple, Type
 import aiosqlite
 import arrow
 from dateutil import parser as du_parser
+from packaging import version
 
 import discord
 from discord.ext import commands
@@ -65,7 +66,7 @@ class SavedScheduleEvent(NamedTuple):
         """
         return cls(*row)
 
-    def do_repeat(self) -> SavedScheduleEvent:
+    def do_repeat(self, current_timestamp: int) -> SavedScheduleEvent:
         """
         Do an iteration of repeat.
 
@@ -77,7 +78,7 @@ class SavedScheduleEvent(NamedTuple):
             self.guild_id,
             self.channel_id,
             self.author_id,
-            self.next_event_time + self.repeat * 60,
+            current_timestamp + self.repeat * 60,
             self.repeat,
             self.canceled,
         )
@@ -448,6 +449,58 @@ class Scheduler(Cog):
 
         await self.db.commit()  # commit the changes
 
+    # Older versions don't support RETURNING in SQLite
+    if version.parse(aiosqlite.sqlite_version) >= version.parse("3.35.0"):
+        async def _insert_schedule(self, event: ScheduleEvent) -> SavedScheduleEvent:
+            async with self.db.execute(
+                r"""
+                    INSERT INTO Scheduler (message, guild_id, channel_id, author_id, next_event_time, repeat)
+                        VALUES ($message, $guild_id, $channel_id, $author_id, $next_event_time, $repeat)
+                        RETURNING *
+                """,
+                {
+                    "message": event.message,
+                    "guild_id": event.channel.guild.id,
+                    "channel_id": event.channel.id,
+                    "author_id": event.author.id,
+                    "next_event_time": int(event.time.timestamp()),
+                    "repeat": event.repeat,
+                },
+            ) as cur:
+                event_db = SavedScheduleEvent.from_row(await cur.fetchone())
+
+            await self.db.commit()
+            return event_db
+
+    else:
+        async def _insert_schedule(self, event: ScheduleEvent) -> SavedScheduleEvent:
+            async with self.db.execute(
+                r"""
+                    INSERT INTO Scheduler (message, guild_id, channel_id, author_id, next_event_time, repeat)
+                        VALUES ($message, $guild_id, $channel_id, $author_id, $next_event_time, $repeat)
+                """,
+                {
+                    "message": event.message,
+                    "guild_id": event.channel.guild.id,
+                    "channel_id": event.channel.id,
+                    "author_id": event.author.id,
+                    "next_event_time": int(event.time.timestamp()),
+                    "repeat": event.repeat,
+                },
+            ) as cur:
+                async with self.db.execute(
+                    r"""
+                    SELECT * 
+                        FROM Scheduler
+                        WHERE id=$id
+                        LIMIT 1
+                """,
+                    {"id": cur.lastrowid},
+                ) as cur2:
+                    event_db = SavedScheduleEvent.from_row(await cur2.fetchone())
+            await self.db.commit()
+            return event_db
+
     async def save_event(self, event: ScheduleEvent) -> None:
         """
         Saves the ScheduleEvent into database and adds to the event heap.
@@ -455,24 +508,8 @@ class Scheduler(Cog):
         :param event: The created ScheduleEvent object from the form.
         """
         # Inserts into database
-        async with self.db.execute(
-            r"""
-            INSERT INTO Scheduler (message, guild_id, channel_id, author_id, next_event_time, repeat)
-                VALUES ($message, $guild_id, $channel_id, $author_id, $next_event_time, $repeat)
-                RETURNING *
-        """,
-            {
-                "message": event.message,
-                "guild_id": event.channel.guild.id,
-                "channel_id": event.channel.id,
-                "author_id": event.author.id,
-                "next_event_time": int(event.time.timestamp()),
-                "repeat": event.repeat,
-            },
-        ) as cur:
-            event_db = SavedScheduleEvent.from_row(await cur.fetchone())
+        event_db = await self._insert_schedule(event)
 
-        await self.db.commit()
         logger.info("Added schedule into database with ID %d.", event_db.id)
         logger.info(
             "Message (preview): %s\nGuild: %s\nChannel: %s\nAuthor: %s\nRepeat: %s",
@@ -557,8 +594,9 @@ class Scheduler(Cog):
                     async with self.heap_lock:  # pop the next event from heap
                         next_event = heapq.heappop(self.schedule_heap)
 
+                    now = arrow.utcnow().timestamp()
                     # Time has past
-                    if next_event.next_event_time < arrow.utcnow().timestamp():
+                    if next_event.next_event_time < now:
                         should_sleep = False
                         try:
                             # Attempt to send the message
@@ -587,7 +625,7 @@ class Scheduler(Cog):
 
                         else:
                             # Otherwise, update the next_event_time
-                            new_event = next_event.do_repeat()
+                            new_event = next_event.do_repeat(int(now))
                             async with self.db.execute(
                                 r"""
                                 UPDATE Scheduler
