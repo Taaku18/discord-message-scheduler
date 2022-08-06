@@ -220,7 +220,7 @@ Project Link: [https://github.com/Taaku18/discord-message-scheduler](https://git
 <!-- ACKNOWLEDGMENTS -->
 ## Acknowledgments
 
-* [bjsbrar/DiscordMessageScheduler](https://github.com/bjsbrar/DiscordMessageScheduler) for inspiration
+* Inspired by [bjsbrar/DiscordMessageScheduler](https://github.com/bjsbrar/DiscordMessageScheduler)
 
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
