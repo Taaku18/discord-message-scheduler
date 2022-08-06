@@ -31,7 +31,8 @@ class General(Cog):
         """Shows info about me."""
         embed = discord.Embed(
             description=f'**{self.bot.user.name}** is a "helper" bot made by Taku.\n\n'
-            "This bot is under development and is not open sourced *\\*yet\\**.",
+            "This bot is open sourced, my source code can be found "
+            "[here](https://github.com/Taaku18/discord-message-scheduler).",
             colour=COLOUR,
         )
         embed.set_footer(text="Please leave a star on my GitHub repo. <3")
