@@ -609,7 +609,7 @@ class Scheduler(Cog):
                     "author_id": event.author.id,
                     "next_event_time": int(event.time.timestamp()),
                     "repeat": event.repeat,
-                    "mention": event.mention,
+                    "mention": int(event.mention),
                 },
             ) as cur:
                 event_db = SavedScheduleEvent.from_row(await cur.fetchone())
@@ -622,8 +622,8 @@ class Scheduler(Cog):
         async def _insert_schedule(self, event: ScheduleEvent) -> SavedScheduleEvent:
             async with self.db.execute(
                 r"""
-                    INSERT INTO Scheduler (message, guild_id, channel_id, author_id, next_event_time, repeat)
-                        VALUES ($message, $guild_id, $channel_id, $author_id, $next_event_time, $repeat)
+                    INSERT INTO Scheduler (message, guild_id, channel_id, author_id, next_event_time, repeat, mention)
+                        VALUES ($message, $guild_id, $channel_id, $author_id, $next_event_time, $repeat, $mention)
                 """,
                 {
                     "message": event.message,
@@ -632,6 +632,7 @@ class Scheduler(Cog):
                     "author_id": event.author.id,
                     "next_event_time": int(event.time.timestamp()),
                     "repeat": event.repeat,
+                    "mention": int(event.mention),
                 },
             ) as cur:
                 async with self.db.execute(
@@ -774,6 +775,11 @@ class Scheduler(Cog):
         if event.mention and perms_author.mention_everyone:  # if mentions is enabled and author still has perms
             allowed_mentions = discord.AllowedMentions.all()
         else:
+            if event.mention:
+                logger.debug(
+                    "Event with ID %s mention disabled due to author doesn't have mention_everyone permission.",
+                    event.id,
+                )
             allowed_mentions = discord.AllowedMentions.none()
         await channel.send(event.message, allowed_mentions=allowed_mentions)
         # TODO: add a "report abuse" feature/command, save all sent msg in a db table with the id
