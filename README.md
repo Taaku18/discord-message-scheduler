@@ -44,6 +44,7 @@
       <ul>
         <li><a href="#prerequisites">Prerequisites</a></li>
         <li><a href="#installation">Installation</a></li>
+        <li><a href="#docker-experimental">Docker (experimental)</a></li>
       </ul>
     </li>
     <li><a href="#usage">Usage</a></li>
@@ -164,17 +165,28 @@ python3.10 start.py
 <!-- Docker setup -->
 ## Docker (experimental)
 
-Alternatively, you can use Docker to deploy this bot. 
+Alternatively, you can use Docker to deploy this bot.
+
+Ensure you have the latest version of [Docker](https://docs.docker.com/get-docker/) installed (v19.03.0+). You will also need the [Docker Compose Plugin](https://docs.docker.com/compose/install/compose-plugin/).
 
 1. Rename `.env.example` to `.env` and set your environment variables (<a href="#installation">see step 3 above</a>)
 2. Build the image
    ```sh
-   docker build -t DMS:latest .
+   docker build -t dms:latest .
    ```
-3. Start the bot
+3. initialize the database (only on first run)
+   ```shell
+   touch schedule.sqlite
+   ```
+4. Start the bot
    ```sh
-   docker compose up
+   docker compose up -d
    ```
+
+To stop the bot do:
+```sh
+docker compose down
+```
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 

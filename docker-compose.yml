@@ -1,6 +1,6 @@
 services:
   bot:
-    image: DMS:latest
+    image: dms:latest
     container_name: discord-message-scheduler
     env_file: .env
     dns:

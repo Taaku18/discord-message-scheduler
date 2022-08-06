@@ -1,6 +1,6 @@
-FROM python:3.9-slim as py
+FROM python:3.10-slim as py
 
-RUN apt update && apt install -y g++
+RUN apt update && apt install -y g++ git
 
 FROM py as build
 
