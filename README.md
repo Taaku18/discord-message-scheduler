@@ -171,8 +171,10 @@ Alternatively, you can use Docker to deploy this bot.
 
 Ensure you have the latest version of [Docker](https://docs.docker.com/get-docker/) installed (v19.03.0+). You will also need the [Docker Compose Plugin](https://docs.docker.com/compose/install/compose-plugin/).
 
+> During the experimental phase, you will have to build your own image. A pre-built image will be provided later. 
+
 1. Rename `.env.example` to `.env` and set your environment variables (<a href="#installation">see step 3 above</a>)
-2. Build the image
+2. Build the image 
    ```sh
    docker build -t dms:latest .
    ```
@@ -180,11 +182,7 @@ Ensure you have the latest version of [Docker](https://docs.docker.com/get-docke
    ```sh
    docker compose up -d
    ```
-
-To stop the bot do:
-```sh
-docker compose down
-```
+   You can stop the bot by running `docker compose down`.
 
 To access your bot logs, run `docker ps`. This will show a list of containers.
 ```sh
