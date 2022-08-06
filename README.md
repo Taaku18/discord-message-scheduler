@@ -143,7 +143,9 @@ You will also need a Discord bot.
       ```dotenv
        TOKEN=VTDkXNDUzC3KyFoIxNzYx2_d4OQ.PK5K1A.9p0q3Kdi26j0eCa_vu3Ke_39KsL3Kkso83E_gB0
        PREFIX=?
+       SYNC_SLASH_COMMANDS=on
       ```
+   `SYNC_SLASH_COMMANDS` should be "on" the first time you start the bot and after updating. It can be set to "off" during normal usage (since syncing slash commands may take a long time).
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 

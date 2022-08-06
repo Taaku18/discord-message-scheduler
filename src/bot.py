@@ -48,16 +48,19 @@ class Bot(commands.Bot):
         This is called on bot start.
         """
 
-        if not DEBUG_MODE:
-            # Sync global slash commands
-            logger.info("Syncing slash commands.")
-            await self.tree.sync()
-            logger.info("Slash commands synced.")
+        if SYNC_SLASH_COMMANDS:
+            logger.info("Syncing slash commands (this may take a while).")
+            if not DEBUG_MODE:
+                # Sync global slash commands
+                await self.tree.sync()
+                logger.info("Slash commands synced.")
+            else:
+                # Sync debug guilds slash commands
+                for guild_id in DEBUG_GUILDS:
+                    await self.tree.sync(guild=discord.Object(guild_id))
+                    logger.info("Synced app command tree to debug guild %d.", guild_id)
         else:
-            # Sync debug guilds slash commands
-            for guild_id in DEBUG_GUILDS:
-                await self.tree.sync(guild=discord.Object(guild_id))
-                logger.info("Synced app command tree to debug guild %d.", guild_id)
+            logger.info("Slash commands sync skipped.")
 
     # noinspection PyMethodMayBeStatic
     async def on_ready(self) -> None:

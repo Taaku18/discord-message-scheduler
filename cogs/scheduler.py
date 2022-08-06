@@ -198,7 +198,7 @@ def get_schedule_modal(defaults: ScheduleModal | None = None) -> Type[ScheduleMo
                         repeat = None
                     elif repeat > 60 * 24 * 365:
                         raise InvalidRepeat("Repeat cannot be longer than a year.")
-                    elif repeat < (0.2 if DEBUG_MODE else 60):  # 12 seconds for debug mode
+                    elif repeat < (0.2 if DEBUG_MODE else 60):  # 12 seconds for debug mode, 60 min for production
                         if DEBUG_MODE:
                             raise InvalidRepeat("Repeat cannot be less than 12 seconds (debug mode is active).")
                         else:
@@ -512,12 +512,13 @@ class Scheduler(Cog):
 
         logger.info("Added schedule into database with ID %d.", event_db.id)
         logger.info(
-            "Message (preview): %s\nGuild: %s\nChannel: %s\nAuthor: %s\nRepeat: %s",
+            "Message (preview): %s\nGuild: %s\nChannel: %s\nAuthor: %s\nRepeat: %s\nTime: %s",
             event.message[:80],
             event.channel.guild,
             event.channel,
             event.author,
             event.repeat,
+            event.time
         )
 
         # Add the event into the schedule heap

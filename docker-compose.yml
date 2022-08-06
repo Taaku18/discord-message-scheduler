@@ -7,10 +7,7 @@ services:
       - 1.1.1.1
       - 1.0.0.1
     network_mode: "host"
-    volumes:
-      - type: bind
-        source: ./schedule.sqlite
-        target: /schedule.sqlite
+    volumes: data:/data
     restart: unless-stopped
     logging:
       driver: "json-file"
