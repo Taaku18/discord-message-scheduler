@@ -1,0 +1,7 @@
+aiosqlite==0.17.0
+arrow==1.2.2
+black==22.6.0
+git+https://github.com/Rapptz/discord.py@d4cc8d30#egg=discord.py[speed]
+python-dateutil==2.8.2
+python-dotenv==0.20.0
+rich==12.5.1
