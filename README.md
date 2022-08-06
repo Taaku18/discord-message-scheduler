@@ -176,11 +176,7 @@ Ensure you have the latest version of [Docker](https://docs.docker.com/get-docke
    ```sh
    docker build -t dms:latest .
    ```
-3. initialize the database (only on first run)
-   ```shell
-   touch schedule.sqlite
-   ```
-4. Start the bot
+3. Start the bot
    ```sh
    docker compose up -d
    ```
@@ -189,6 +185,13 @@ To stop the bot do:
 ```sh
 docker compose down
 ```
+
+To access your bot logs, run `docker ps`. This will show a list of containers.
+```sh
+CONTAINER ID   IMAGE            COMMAND             CREATED          STATUS                  PORTS     NAMES
+58e6aao4c8bd   dms:latest       "python start.py"   14 seconds ago   Up Less than a second             discord-message-scheduler
+```
+Find the **CONTAINER ID** of the container named "discord-message-scheduler" and run `docker logs <CONTAINER ID>`.
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 

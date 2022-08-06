@@ -451,6 +451,7 @@ class Scheduler(Cog):
 
     # Older versions don't support RETURNING in SQLite
     if version.parse(aiosqlite.sqlite_version) >= version.parse("3.35.0"):
+
         async def _insert_schedule(self, event: ScheduleEvent) -> SavedScheduleEvent:
             async with self.db.execute(
                 r"""
@@ -473,6 +474,7 @@ class Scheduler(Cog):
             return event_db
 
     else:
+
         async def _insert_schedule(self, event: ScheduleEvent) -> SavedScheduleEvent:
             async with self.db.execute(
                 r"""
@@ -518,7 +520,7 @@ class Scheduler(Cog):
             event.channel,
             event.author,
             event.repeat,
-            event.time
+            event.time,
         )
 
         # Add the event into the schedule heap

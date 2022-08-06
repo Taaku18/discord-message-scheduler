@@ -13,7 +13,15 @@ from dotenv import load_dotenv
 
 from discord import Colour
 
-__all__ = ["DEBUG_MODE", "TOKEN", "PREFIX", "COLOUR", "SCHEDULER_DATABASE_PATH", "DEBUG_GUILDS", "SYNC_SLASH_COMMANDS"]
+__all__ = [
+    "DEBUG_MODE",
+    "TOKEN",
+    "PREFIX",
+    "COLOUR",
+    "SCHEDULER_DATABASE_PATH",
+    "DEBUG_GUILDS",
+    "SYNC_SLASH_COMMANDS",
+]
 
 logger = logging.getLogger(__name__)
 
@@ -34,10 +42,10 @@ PREFIX = os.getenv("PREFIX", "=")
 # Sets the embed colour, 0x749DA1 is teal
 COLOUR = Colour(0x749DA1)
 
-# Default is ../data/schedule.sqlite
-SCHEDULER_DATABASE_NAME = "schedule.sqlite"
+# Default is ../data/schedule.db
+SCHEDULER_DATABASE_NAME = "schedule.db"
 SCHEDULER_DATABASE_PATH = os.path.join(
-    os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'data', SCHEDULER_DATABASE_NAME
+    os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "data", SCHEDULER_DATABASE_NAME
 )
 
 # Configure debug servers
