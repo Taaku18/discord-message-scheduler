@@ -11,19 +11,17 @@ import logging
 import re
 import warnings
 from secrets import token_hex
-from typing import TYPE_CHECKING, NamedTuple, Type
+from typing import TYPE_CHECKING, NamedTuple, Type, Literal
 
 import aiosqlite
 import arrow
-from dateutil import parser as du_parser
-import dateparser as dp_parser
 from packaging import version
 
 import discord
 from discord.ext import commands
 
 from src.commands import Cog
-from src.env import COLOUR, SCHEDULER_DATABASE_PATH, DEBUG_MODE, DEFAULT_TIMEZONE
+from src.env import COLOUR, SCHEDULER_DATABASE_PATH, DEBUG_MODE, DEFAULT_TIMEZONE, TIME_LANG
 
 if TYPE_CHECKING:
     from src.bot import Bot
@@ -32,7 +30,7 @@ if TYPE_CHECKING:
 logger = logging.getLogger(__name__)
 
 DB_VERSION = 1
-TIME_PARSE_METHOD = "dateparser"  # options: 'dateutil', 'dateparser'
+TIME_PARSE_METHOD: Literal["dateparser"] | Literal["dateutil"] = "dateparser"  # options: 'dateutil', 'dateparser'
 
 
 class SanitizedScheduleEvent(NamedTuple):
@@ -139,6 +137,28 @@ class InvalidRepeat(ValueError):
         self.reason = reason
 
 
+class BadTimezone(ValueError):
+    """
+    Raised the timezone is invalid.
+    """
+
+    def __init__(self, timezone: str | None) -> None:
+        """
+        :param timezone: The invalid timezone, if timezone is None then
+                         it means the timezone is supplied at an invalid location.
+        """
+        self.timezone = timezone
+
+
+class BadTimeString(ValueError):
+    """
+    Raised when the time cannot be parsed.
+    """
+
+    def __init__(self, time: str) -> None:
+        self.time = time
+
+
 def get_schedule_modal(defaults: ScheduleModal | None = None) -> Type[ScheduleModal]:
     """
     This is a class factory to create ScheduleModal with defaults.
@@ -197,17 +217,52 @@ def get_schedule_modal(defaults: ScheduleModal | None = None) -> Type[ScheduleMo
             :return: The sanitized ScheduleEvent.
             """
 
-            # parse the time
-            with warnings.catch_warnings():
-                # noinspection PyUnresolvedReferences
-                warnings.simplefilter("error", du_parser.UnknownTimezoneWarning)  # exists, but editor is weird
-                naive_time = du_parser.parse(self.time.value)
+            if TIME_PARSE_METHOD == "dateutil":
+                from dateutil import parser as du_parser
 
-            # apply the timezone
-            if self.timezone.value:  # if user inputted a timezone
-                time = arrow.get(naive_time, self.timezone.value)
-            else:
-                time = arrow.get(naive_time)  # will use either tz from naive time or UTC
+                try:
+                    # parse the time
+                    with warnings.catch_warnings():  # will raise exception is an unknown timezone is detected
+                        # noinspection PyUnresolvedReferences
+                        warnings.simplefilter(
+                            "error", du_parser.UnknownTimezoneWarning
+                        )  # exists, but editor is weird
+                        naive_time = du_parser.parse(self.time.value)
+                except du_parser.UnknownTimezoneWarning as e:  # noqa
+                    raise BadTimezone(None) from e
+                except du_parser.ParserError as e:  # fails to parse time
+                    raise BadTimeString(self.time.value) from e
+
+                # apply the timezone
+                if self.timezone.value:  # if user inputted a timezone
+                    try:
+                        time = arrow.get(naive_time, self.timezone.value)
+                    except arrow.ParserError as e:  # fails to parse timezone
+                        logger.debug("Failed to parse timezone.", exc_info=e)
+                        raise BadTimezone(self.timezone.value) from e
+                else:
+                    time = arrow.get(naive_time)  # will use either tz from naive time or UTC
+            else:  # dateparser method
+                import dateparser as dp_parser
+
+                try:
+                    naive_time = dp_parser.parse(
+                        self.time.value,
+                        languages=TIME_LANG,
+                        settings={
+                            "TIMEZONE": self.timezone.value,
+                            "RETURN_AS_TIMEZONE_AWARE": True,
+                            "DEFAULT_LANGUAGES": TIME_LANG,
+                        },
+                    )
+                except Exception as e:
+                    if e.__class__.__name__ == "UnknownTimeZoneError":  # invalid timezone
+                        raise BadTimezone(self.timezone.value) from e
+                    raise  # re-raise
+
+                if naive_time is None:
+                    raise BadTimeString(self.time.value)
+                time = arrow.get(naive_time)
 
             # check time is in the future
             now = arrow.utcnow()
@@ -255,10 +310,20 @@ def get_schedule_modal(defaults: ScheduleModal | None = None) -> Type[ScheduleMo
             """
             try:
                 event = self.sanitize_response(interaction)
-            except du_parser.UnknownTimezoneWarning:  # noqa
-                embed = discord.Embed(
-                    description="Please don't include timezones in the **Scheduled Time** field.", colour=COLOUR
-                )
+            except BadTimezone as e:
+                if e.timezone is None:
+                    # Invalid timezone in dateutil's parse
+                    embed = discord.Embed(
+                        description="Please don't include timezones in the **Scheduled Time** field.",
+                        colour=COLOUR,
+                    )
+                else:
+                    embed = discord.Embed(
+                        description="I cannot understand this timezone. Try entering the "
+                        "[TZ database name](https://en.wikipedia.org/wiki/List_of_tz_database_time_zones) "
+                        "of your timezone (case sensitive).",
+                        colour=COLOUR,
+                    )
             except TimeInPast as e:  # time is in the past
                 embed = discord.Embed(
                     description=f"The time you inputted is in the past (<t:{int(e.time.timestamp())}>). "
@@ -270,9 +335,9 @@ def get_schedule_modal(defaults: ScheduleModal | None = None) -> Type[ScheduleMo
                 )
             except InvalidRepeat as e:  # repeat is invalid
                 embed = discord.Embed(description=e.reason, colour=COLOUR)
-            except du_parser.ParserError:  # time parse error
+            except BadTimeString as e:  # time parse error
                 embed = discord.Embed(
-                    description=f"I cannot understand the time **{discord.utils.escape_markdown(self.time.value)}**.",
+                    description=f"I cannot understand the time **{discord.utils.escape_markdown(e.time)}**.",
                     colour=COLOUR,
                 )
                 embed.add_field(

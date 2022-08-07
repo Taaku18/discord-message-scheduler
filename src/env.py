@@ -10,7 +10,6 @@ import os
 import time
 from distutils.util import strtobool
 
-from dateutil.tz import gettz
 from dotenv import load_dotenv
 
 from discord import Colour
@@ -24,6 +23,7 @@ __all__ = [
     "DEBUG_GUILDS",
     "SYNC_SLASH_COMMANDS",
     "DEFAULT_TIMEZONE",
+    "TIME_LANG",
 ]
 
 logger = logging.getLogger(__name__)
@@ -81,13 +81,38 @@ else:
 
 SYNC_SLASH_COMMANDS = strtobool(os.getenv("SYNC_SLASH_COMMANDS", "on"))
 
+# Get timezone env
 original_tz = os.getenv("TZ")
-DEFAULT_TIMEZONE = os.getenv("DEFAULT_TIMEZONE", original_tz or "America/Vancouver")
-if gettz(DEFAULT_TIMEZONE) is not None and os.name != "nt":  # time.tzset() only support Unix systems
-    os.environ["TZ"] = DEFAULT_TIMEZONE
+_DEFAULT_TIMEZONE = "America/Vancouver"
+DEFAULT_TIMEZONE = os.getenv("DEFAULT_TIMEZONE", original_tz or _DEFAULT_TIMEZONE)
+
+try:
+    # noinspection PyUnresolvedReferences
+    from dateutil.tz import gettz
+    # Set the TZ env to DEFAULT_TIMEZONE
+    if gettz(DEFAULT_TIMEZONE) is not None and os.name != "nt":  # time.tzset() only support Unix systems
+        os.environ["TZ"] = DEFAULT_TIMEZONE
+        try:
+            time.tzset()
+        except Exception as e:
+            logger.warning("Failed to set timezone.", exc_info=e)
+            if original_tz is not None:  # reverts timezone
+                os.environ["TZ"] = original_tz
+except ModuleNotFoundError:
+    pass  # dateutil is not used
+
+try:
+    # noinspection PyUnresolvedReferences
+    import dateparser
     try:
-        time.tzset()
+        dateparser.parse(
+            "now", languages=["en"], settings={"TIMEZONE": DEFAULT_TIMEZONE, "DEFAULT_LANGUAGES": ["en"]}
+        )  # test the timezone by attempting to get "now"
     except Exception as e:
-        logger.warning("Failed to set timezone.", exc_info=e)
-        if original_tz is not None:  # reverts timezone
-            os.environ["TZ"] = original_tz
+        logger.warning("Timezone may be invalid, reverting default timezone to %s.", _DEFAULT_TIMEZONE, exc_info=e)
+        DEFAULT_TIMEZONE = _DEFAULT_TIMEZONE
+except ModuleNotFoundError:
+    pass  # dateparser is not used
+
+
+TIME_LANG = ["en"]
