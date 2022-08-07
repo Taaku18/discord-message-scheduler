@@ -134,11 +134,15 @@ You will also need a Discord bot.
    ```sh
    git clone https://github.com/Taaku18/discord-message-scheduler.git
    ```
-2. Install Python dependencies
-   ```sh
-   python3.10 -m pip install -U pip
-   python3.10 -m pip install -U -r requirements.txt
-   ```
+2. Install Python dependencies, choose a method from below:
+   1. (Recommended) Using PDM
+      1. [Install PDM](https://pdm.fming.dev/latest/#recommended-installation-method) 
+      2. Run `pdm sync --clean`
+   2. Using pip
+      ```sh
+      python3.10 -m pip install -U pip
+      python3.10 -m pip install -U -r requirements.txt
+      ```
 3. Rename `.env.example` to `.env` and replace `BOT-TOKEN` with your bot's token and `BOT-PREFIX` with your desired bot prefix.
    Example `.env` file:
       ```dotenv
