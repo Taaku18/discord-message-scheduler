@@ -1,6 +1,9 @@
 FROM python:3.10-slim as py
 
-RUN apt update && apt install -y g++ git
+ENV PYTHONDONTWRITEBYTECODE 1
+ENV PYTHONUNBUFFERED 1
+
+RUN apt update && apt install -y --no-install-recommends g++ git
 
 FROM py as build
 
