@@ -1,4 +1,5 @@
 # Custom
+.pdm.toml
 
 ### VisualStudioCode template
 .vscode/*

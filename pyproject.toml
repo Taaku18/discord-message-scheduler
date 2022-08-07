@@ -1,3 +1,39 @@
 [tool.black]
 line-length = 115
 target-version = ['py310']
+
+[tool.pdm]
+[tool.pdm.dev-dependencies]
+lint = [
+    "black>=22.6.0",
+]
+
+[project]
+name = "Discord Message Scheduler"
+version = "1.1"
+description = "A simple Discord Bot that can send scheduled messages."
+authors = [
+    {name = "Taku", email = "noemail@example.com"},
+]
+dependencies = [
+    "aiosqlite~=0.17",
+    "arrow~=1.2",
+    "dateparser @ git+https://github.com/scrapinghub/dateparser@0ed979e",
+    "discord.py @ git+https://github.com/Rapptz/discord.py@d4cc8d30",
+    "packaging>=21.3",
+    "python-dateutil~=2.8",
+    "python-dotenv>=0.20.0",
+    "rich~=12.5",
+]
+requires-python = ">=3.10"
+license = {text = "GPL-3.0-only"}
+
+[project.optional-dependencies]
+speed = [
+    "discord.py[speed] @ git+https://github.com/Rapptz/discord.py@d4cc8d30",
+    "uvloop>=0.16.0; platform_system != \"Windows\"",
+]
+
+[build-system]
+requires = ["pdm-pep517>=1.0.0"]
+build-backend = "pdm.pep517.api"

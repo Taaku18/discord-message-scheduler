@@ -16,6 +16,7 @@ from typing import TYPE_CHECKING, NamedTuple, Type
 import aiosqlite
 import arrow
 from dateutil import parser as du_parser
+import dateparser as dp_parser
 from packaging import version
 
 import discord
@@ -31,6 +32,7 @@ if TYPE_CHECKING:
 logger = logging.getLogger(__name__)
 
 DB_VERSION = 1
+TIME_PARSE_METHOD = "dateparser"  # options: 'dateutil', 'dateparser'
 
 
 class SanitizedScheduleEvent(NamedTuple):

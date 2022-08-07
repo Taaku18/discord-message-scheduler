@@ -134,9 +134,10 @@ You will also need a Discord bot.
    ```sh
    git clone https://github.com/Taaku18/discord-message-scheduler.git
    ```
-2. Install Python packages
+2. Install Python dependencies
    ```sh
-   python3.10 -m pip install -r requirements.txt
+   python3.10 -m pip install -U pip
+   python3.10 -m pip install -U -r requirements.txt
    ```
 3. Rename `.env.example` to `.env` and replace `BOT-TOKEN` with your bot's token and `BOT-PREFIX` with your desired bot prefix.
    Example `.env` file:
@@ -182,7 +183,7 @@ Ensure you have the latest version of [Docker](https://docs.docker.com/get-docke
    ```sh
    docker build -t dms:latest .
    ```
-3. Start the bot
+4. Start the bot
    ```sh
    docker compose up -d
    ```
@@ -201,12 +202,13 @@ Find the **CONTAINER ID** of the container named "discord-message-scheduler" and
 ## Roadmap
 
 - [x] Basic help and schedule command interfaces
+- [x] Create a Docker image
 - [ ] Implement list/delete command
     - [ ] Allow server staff access to these commands
 - [ ] Implement reporting interface to remove abusive scheduled messages
 - [ ] Permissions system
 - [ ] Add GitHub workflow for testing, linting, building Docker image
-- [ ] Create a Docker image
+- [ ] Auto generate requirements.txt from PDM using workflow
 
 See the [open issues](https://github.com/github_username/repo_name/issues) for a full list of proposed features (and known issues).
 
@@ -228,6 +230,19 @@ Don't forget to give the project a star! Thanks again!
 4. Commit your Changes (`git commit -m 'Add some AmazingFeature'`)
 5. Push to the Branch (`git push origin feature/AmazingFeature`)
 6. Open a Pull Request
+
+We use [PDM](https://pdm.fming.dev/latest/) as our dependency manager. See their [installations page](https://pdm.fming.dev/latest/#recommended-installation-method) on how to install this tool.
+* Add package: `pdm add <package name>`
+* Update package: `pdm update <package name>`
+* Remove package: `pdm remove <package name>`
+* Install dependencies: `pdm sync --clean` (this will also remove all non-project dependencies)
+
+Optionally add `-dG <group name>` (development group) or `-G <group name>` (optional group) to the above commands if the package belongs to a specific group (ex. `lint`, `speed`).
+
+When making dependencies changes, always export the requirements to `requirements.txt` with
+```sh
+pdm export --pyproject --without-hashes -G:all -o requirements.txt
+```
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
