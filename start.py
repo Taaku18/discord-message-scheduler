@@ -5,8 +5,6 @@ Entrypoint for the bot.
 """
 from __future__ import annotations
 
-__version__ = "1.1"
-
 import asyncio
 import logging
 import sys
@@ -38,6 +36,7 @@ if __name__ == "__main__":
         else:
             # Start event loop
             if sys.version_info >= (3, 11):
+                # noinspection PyUnresolvedReferences
                 with asyncio.Runner(loop_factory=uvloop.new_event_loop) as runner:
                     runner.run(main())
             else:

@@ -5,6 +5,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+
+## [1.1.1] - 2022-08-07
 ### Added
 - Use pdm as our package manager
 - Use dateparser as the default time parser
@@ -12,6 +14,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 - Ping support wasn't working for older SQLite versions
+
 
 ## [1.1] - 2022-08-06
 ### Added
@@ -30,6 +33,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Initial code base for the bot
 
 
-[Unreleased]: https://github.com/Taaku18/discord-message-scheduler/compare/v1.1...HEAD
+[Unreleased]: https://github.com/Taaku18/discord-message-scheduler/compare/v1.1.1...HEAD
+[1.1.1]: https://github.com/Taaku18/discord-message-scheduler/compare/v1.1...v1.1.1
 [1.1]: https://github.com/Taaku18/discord-message-scheduler/compare/v1.0...v1.1
 [1.0]: https://github.com/Taaku18/discord-message-scheduler/releases/tag/v1.0
