@@ -3,7 +3,7 @@ FROM python:3.10-slim as py
 ENV PYTHONDONTWRITEBYTECODE 1
 ENV PYTHONUNBUFFERED 1
 
-RUN apt update && apt install -y --no-install-recommends g++ git
+RUN apt-get update && apt-get install -y --no-install-recommends g++ git && rm -rf /var/lib/apt/lists/*
 
 FROM py as build
 
