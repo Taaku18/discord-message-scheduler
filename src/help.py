@@ -6,7 +6,7 @@ Implements the "help" command.
 from __future__ import annotations
 
 import itertools
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Sequence, Any, Optional, Mapping, List
 
 import discord
 from discord.ext import commands
@@ -15,7 +15,7 @@ from .env import PREFIX, COLOUR
 
 if TYPE_CHECKING:
     # noinspection PyProtectedMember
-    from discord.ext.commands.help import Sequence, Command, Any, Optional, Mapping, List, Cog  # type: ignore[reportPrivateImportUsage]
+    from discord.ext.commands.help import Command, Cog  # type: ignore[reportPrivateImportUsage]
 
 
 class HelpCmd(commands.DefaultHelpCommand):
@@ -41,6 +41,7 @@ class HelpCmd(commands.DefaultHelpCommand):
             f"You can also type `{PREFIX}{command_name} category` for more info on a category."
         )
 
+    # noinspection PyShadowingNames
     def add_indented_commands(
         self, commands: Sequence[Command[Any, ..., Any]], /, *, heading: str, max_size: Optional[int] = None
     ) -> None:
@@ -112,7 +113,9 @@ class HelpCmd(commands.DefaultHelpCommand):
         )
 
         # Now we can add the commands to the page.
+        # noinspection PyShadowingNames
         for category, commands in to_iterate:  # type: ignore  # dpy type issue
+            # noinspection PyShadowingNames
             commands = sorted(commands, key=lambda c: c.name) if self.sort_commands else list(commands)
             self.add_indented_commands(
                 commands, heading=category, max_size=max_size  # type: ignore  # dpy type issue

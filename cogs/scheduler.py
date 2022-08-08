@@ -198,6 +198,7 @@ def get_schedule_modal(defaults: ScheduleModal | None = None) -> Type[ScheduleMo
     timezone_default = defaults and defaults.timezone.value or DEFAULT_TIMEZONE
     repeat_default = defaults and defaults.repeat.value or "0"
 
+    # noinspection PyShadowingNames
     class ScheduleModal(discord.ui.Modal, title="Schedule Creator"):
         """
         The scheduling modal to collect info for the schedule.
@@ -348,7 +349,7 @@ def get_schedule_modal(defaults: ScheduleModal | None = None) -> Type[ScheduleMo
                 event = self.sanitize_response(interaction)
             except BadTimezone as e:
                 if e.timezone is None:
-                    # Invalid timezone in dateutil's parse
+                    # Invalid timezone in dateutil.parser.parse
                     embed = discord.Embed(
                         description="Please don't include timezones in the **Scheduled Time** field.",
                         colour=COLOUR,
