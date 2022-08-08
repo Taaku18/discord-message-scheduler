@@ -42,6 +42,7 @@ if __name__ == "__main__":
             else:
                 uvloop.install()
                 asyncio.run(main())
+            del uvloop  # remove local variable
     except KeyboardInterrupt:
         pass
     logger.info("[red]Bot has stopped.[/red]", extra={"markup": True})

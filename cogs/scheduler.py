@@ -242,6 +242,8 @@ def get_schedule_modal(defaults: ScheduleModal | None = None) -> Type[ScheduleMo
                         raise BadTimezone(self.timezone.value) from e
                 else:
                     time = arrow.get(naive_time)  # will use either tz from naive time or UTC
+                del du_parser  # remove local variable
+
             else:  # dateparser method
                 import dateparser as dp_parser
 
@@ -263,6 +265,7 @@ def get_schedule_modal(defaults: ScheduleModal | None = None) -> Type[ScheduleMo
                 if naive_time is None:
                     raise BadTimeString(self.time.value)
                 time = arrow.get(naive_time)
+                del dp_parser  # remove local variable
 
             # check time is in the future
             now = arrow.utcnow()
