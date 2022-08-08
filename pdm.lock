@@ -248,7 +248,7 @@ summary = "pyparsing module - Classes and methods to define and execute parsing 
 
 [[package]]
 name = "pyright"
-version = "1.1.265"
+version = "1.1.266"
 requires_python = ">=3.7"
 summary = "Command line wrapper for pyright"
 dependencies = [
@@ -358,7 +358,7 @@ dependencies = [
 
 [metadata]
 lock_version = "4.0"
-content_hash = "sha256:72e427c1948c2ea4934d3de7fae46d50fe5e1ba03429bc31091e74bc38df82fa"
+content_hash = "sha256:238a6dc01680ccb3eaa7ecd3f883f1f833c12424deb564d9d21cec8846c7b568"
 
 [metadata.files]
 "aiodns 3.0.0" = [
@@ -896,9 +896,9 @@ content_hash = "sha256:72e427c1948c2ea4934d3de7fae46d50fe5e1ba03429bc31091e74bc3
     {url = "https://files.pythonhosted.org/packages/6c/10/a7d0fa5baea8fe7b50f448ab742f26f52b80bfca85ac2be9d35cdd9a3246/pyparsing-3.0.9-py3-none-any.whl", hash = "sha256:5026bae9a10eeaefb61dab2f09052b9f4307d44aee4eda64b309723d8d206bbc"},
     {url = "https://files.pythonhosted.org/packages/71/22/207523d16464c40a0310d2d4d8926daffa00ac1f5b1576170a32db749636/pyparsing-3.0.9.tar.gz", hash = "sha256:2b020ecf7d21b687f219b71ecad3631f644a47f01403fa1d1036b0c6416d70fb"},
 ]
-"pyright 1.1.265" = [
-    {url = "https://files.pythonhosted.org/packages/04/f8/6e304a656a027c7c23dee6329d2903c589113eefbbcca2076c2cce100919/pyright-1.1.265.tar.gz", hash = "sha256:0a98fd55ba8b9c16145c16b79c524fdb1daf55ed6dc094c8a7a2dd540af00b67"},
-    {url = "https://files.pythonhosted.org/packages/80/73/2a8e7ec731e0772eab37ca796e5a1d17c36815d0dd432aa0b9a318930a9e/pyright-1.1.265-py3-none-any.whl", hash = "sha256:a504d67d559dc90bf7209df090d79392fee47f308b36066a467b98d2a4aa471d"},
+"pyright 1.1.266" = [
+    {url = "https://files.pythonhosted.org/packages/92/14/4d758d1089112f29a4dbc4740cf6473f020478cc41a53134a32fb7637b1e/pyright-1.1.266.tar.gz", hash = "sha256:1154aeaaa0b62f5161af09342bf0a586468d6789377dfd8710ba8d85c22eee94"},
+    {url = "https://files.pythonhosted.org/packages/fa/db/3965d35849bd8458e967d4e4f32f2b48464ef6e481c5c4ee3fff9c7cd157/pyright-1.1.266-py3-none-any.whl", hash = "sha256:246b2fb33c9483ac6e684e8e7619e3ecf0fee20180ec22549a4f3cdf47dbd0de"},
 ]
 "python-dateutil 2.8.2" = [
     {url = "https://files.pythonhosted.org/packages/36/7a/87837f39d0296e723bb9b62bbb257d0355c7f6128853c78955f57342a56d/python_dateutil-2.8.2-py2.py3-none-any.whl", hash = "sha256:961d03dc3453ebbc59dbdea9e4e11c5651520a876d0f4db161e8674aae935da9"},

@@ -703,8 +703,10 @@ class Scheduler(Cog):
         async def _insert_schedule(self, event: ScheduleEvent) -> SavedScheduleEvent:
             async with self.db.execute(
                 r"""
-                    INSERT INTO Scheduler (message, guild_id, channel_id, author_id, next_event_time, repeat, mention)
-                        VALUES ($message, $guild_id, $channel_id, $author_id, $next_event_time, $repeat, $mention)
+                    INSERT INTO Scheduler (message, guild_id, channel_id, 
+                                           author_id, next_event_time, repeat, mention)
+                        VALUES ($message, $guild_id, $channel_id, $author_id, 
+                                $next_event_time, $repeat, $mention)
                         RETURNING *
                 """,
                 {
@@ -730,8 +732,10 @@ class Scheduler(Cog):
         async def _insert_schedule(self, event: ScheduleEvent) -> SavedScheduleEvent:
             async with self.db.execute(
                 r"""
-                    INSERT INTO Scheduler (message, guild_id, channel_id, author_id, next_event_time, repeat, mention)
-                        VALUES ($message, $guild_id, $channel_id, $author_id, $next_event_time, $repeat, $mention)
+                    INSERT INTO Scheduler (message, guild_id, channel_id, 
+                                           author_id, next_event_time, repeat, mention)
+                        VALUES ($message, $guild_id, $channel_id, $author_id, 
+                                $next_event_time, $repeat, $mention)
                 """,
                 {
                     "message": event.message,
@@ -901,7 +905,8 @@ class Scheduler(Cog):
                 )
             allowed_mentions = discord.AllowedMentions.none()
         # channel has .send since invalid channel typed are filtered above with hasattr(channel, 'send')
-        await channel.send(event.message, allowed_mentions=allowed_mentions)  # type: ignore[reportGeneralTypeIssues]
+        await channel.send(event.message,  # type: ignore[reportGeneralTypeIssues]
+                           allowed_mentions=allowed_mentions)
         # TODO: add a "report abuse" feature/command, save all sent msg in a db table with the id
         return True
 
@@ -981,12 +986,17 @@ class Scheduler(Cog):
             await asyncio.sleep(1)
 
     @commands.guild_only()
-    @commands.hybrid_command()
+    @commands.hybrid_group(fallback="create", ignore_extra=False)
     @discord.app_commands.describe(channel="The channel for the scheduled message.")
-    async def schedule(self, ctx: commands.Context[Bot], channel: MessageableGuildChannel | None) -> None:
+    async def schedule(
+        self,
+        ctx: commands.Context[Bot],
+        *,
+        channel: MessageableGuildChannel = None,  # type: ignore[reportGeneralTypeIssues]
+    ) -> None:
         """Schedules a message for the future.
+        `channel` - The channel for the scheduled message.
 
-        channel: The channel for the scheduled message.
         You must have **send messages** permissions in the target channel.
         """
 
@@ -1026,6 +1036,51 @@ class Scheduler(Cog):
         else:
             # Otherwise, directly open the modal
             await ctx.interaction.response.send_modal(ScheduleModal(self, channel))
+
+    @commands.guild_only()
+    @schedule.command(name="create", with_app_command=False, ignore_extra=False, hidden=True)
+    async def schedule_create(
+        self,
+        ctx: commands.Context[Bot],
+        *,
+        channel: MessageableGuildChannel = None,  # type: ignore[reportGeneralTypeIssues]
+    ) -> None:
+        """Schedules a message for the future.
+        `channel` - The channel for the scheduled message.
+
+        You must have **send messages** permissions in the target channel.
+        """
+        # This command is an alias to `schedule`
+        await ctx.invoke(self.schedule.callback, ctx, channel=channel)  # type: ignore[reportGeneralTypeIssues]
+
+    @commands.guild_only()
+    @schedule.command(name="list", ignore_extra=False)
+    @discord.app_commands.describe(channel="The channel to list scheduled messages.")
+    async def schedule_list(
+        self,
+        ctx: commands.Context[Bot],
+        *,
+        channel: MessageableGuildChannel = None,  # type: ignore[reportGeneralTypeIssues]
+    ) -> None:
+        """List your scheduled messages in this server or a specific channel.
+        `channel` - The channel to list scheduled messages.
+        """
+
+        if channel is None:
+            if not isinstance(ctx.channel, MessageableGuildChannel):
+                raise ValueError("Where else was this command ran?")
+
+            channel = ctx.channel
+
+    @commands.guild_only()
+    @schedule.command(name="remove", aliases=["delete"])
+    @discord.app_commands.describe(event_id="The event ID of the scheduled message (see `/list`).")
+    async def schedule_remove(self, ctx: commands.Context[Bot], event_id: int) -> None:
+        """Remove a previously scheduled message event.
+        `channel` - The channel of the scheduled message.
+        `event_id` - The event ID of the scheduled message (see `/list`).
+        """
+        ...
 
 
 async def setup(bot: Bot) -> None:
