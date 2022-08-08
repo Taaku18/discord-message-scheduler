@@ -6,6 +6,7 @@ The main Bot class.
 from __future__ import annotations
 
 import logging
+from typing import Any
 
 import discord
 from discord.ext import commands
@@ -37,7 +38,7 @@ class Bot(commands.Bot):
             help_command=HelpCmd(),
         )
 
-    async def start(self, *args, **kwargs) -> None:
+    async def start(self, *args: Any, **kwargs: Any) -> None:
         """
         Start the bot using the TOKEN env.
         """

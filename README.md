@@ -213,7 +213,7 @@ Find the **CONTAINER ID** of the container named "discord-message-scheduler" and
 - [ ] Permissions system
 - [ ] Add GitHub workflow for testing, linting, building Docker image
 - [ ] Auto generate requirements.txt from PDM using workflow
-- [ ] Revise pyright config - possibly use strict mode, add to contributing guidelines
+- [ ] Revise pyright config, add to contributing guidelines
 
 See the [open issues](https://github.com/github_username/repo_name/issues) for a full list of proposed features (and known issues).
 

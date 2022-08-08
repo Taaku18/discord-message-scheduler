@@ -10,7 +10,7 @@ import os
 import time
 from distutils.util import strtobool
 
-from dotenv import load_dotenv
+from dotenv import load_dotenv  # type: ignore[reportUnknownVariableType]
 
 from discord import Colour
 
@@ -69,7 +69,7 @@ if "DEBUG_GUILDS" in os.environ:
         exit(1)
 elif "DEBUG_GUILD" in os.environ:
     try:
-        DEBUG_GUILDS = [int(os.environ["DEBUG_GUILD"])]
+        DEBUG_GUILDS: list[int] = [int(os.environ["DEBUG_GUILD"])]  # type: ignore[reportConstantRedefinition]
     except ValueError:
         logger.critical(
             "[bold red]DEBUG_GUILD must be a guild ID. "
@@ -78,7 +78,7 @@ elif "DEBUG_GUILD" in os.environ:
         )
         exit(1)
 else:
-    DEBUG_GUILDS = []
+    DEBUG_GUILDS = []  # type: ignore[reportConstantRedefinition]
 
 SYNC_SLASH_COMMANDS = strtobool(os.getenv("SYNC_SLASH_COMMANDS", "on"))
 
@@ -118,7 +118,7 @@ try:
         )  # test the timezone by attempting to get "now"
     except Exception as e:
         logger.warning("Timezone may be invalid, reverting default timezone to %s.", _DEFAULT_TIMEZONE, exc_info=e)
-        DEFAULT_TIMEZONE = _DEFAULT_TIMEZONE
+        DEFAULT_TIMEZONE = _DEFAULT_TIMEZONE  # type: ignore[reportConstantRedefinition]
 except ModuleNotFoundError:
     pass  # dateparser is not used
 

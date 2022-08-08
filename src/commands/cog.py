@@ -8,7 +8,7 @@ from __future__ import annotations
 import logging
 from typing import TYPE_CHECKING
 
-from discord.ext.commands import Cog as _Cog
+from discord.ext.commands import Cog as _Cog  # type: ignore[reportMissingTypeStubs]
 
 if TYPE_CHECKING:
     # noinspection PyProtectedMember

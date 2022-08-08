@@ -115,7 +115,7 @@ class SavedScheduleEvent(NamedTuple):
             self.mention,
         )
 
-    def __lt__(self, other: SavedScheduleEvent) -> bool:
+    def __lt__(self, other: SavedScheduleEvent) -> bool:  # type: ignore[reportIncompatibleMethodOverride]
         """
         Use next_event_time as the comp.
         """
@@ -162,6 +162,30 @@ class BadTimeString(ValueError):
         self.time = time
 
 
+if TYPE_CHECKING:  # TODO: find another way to fix type checking
+    # Provides a stub for ScheduleModal
+    class ScheduleModal(discord.ui.Modal, title="Schedule Creator"):
+        message: discord.ui.TextInput[ScheduleModal]
+        time: discord.ui.TextInput[ScheduleModal]
+        timezone: discord.ui.TextInput[ScheduleModal]
+        repeat: discord.ui.TextInput[ScheduleModal]
+
+        def __init__(self, scheduler: Scheduler, channel: MessageableGuildChannel) -> None:
+            self.scheduler = scheduler
+            self.channel = channel
+            super().__init__()
+
+        def sanitize_response(self, interaction: discord.Interaction) -> SanitizedScheduleEvent:
+            ...
+
+        @property
+        def acceptable_formats(self) -> list[str]:
+            return []
+
+        async def on_submit(self, interaction: discord.Interaction) -> None:
+            ...
+
+
 def get_schedule_modal(defaults: ScheduleModal | None = None) -> Type[ScheduleModal]:
     """
     This is a class factory to create ScheduleModal with defaults.
@@ -174,32 +198,32 @@ def get_schedule_modal(defaults: ScheduleModal | None = None) -> Type[ScheduleMo
     timezone_default = defaults and defaults.timezone.value or DEFAULT_TIMEZONE
     repeat_default = defaults and defaults.repeat.value or "0"
 
-    class _ScheduleModal(discord.ui.Modal, title="Schedule Creator"):
+    class ScheduleModal(discord.ui.Modal, title="Schedule Creator"):
         """
         The scheduling modal to collect info for the schedule.
         """
 
-        message = discord.ui.TextInput(
+        message: discord.ui.TextInput[ScheduleModal] = discord.ui.TextInput(
             label="Message",
             style=discord.TextStyle.paragraph,
             required=True,
             max_length=1000,
             default=message_default,
         )
-        time = discord.ui.TextInput(
+        time: discord.ui.TextInput[ScheduleModal] = discord.ui.TextInput(
             label="Scheduled Time (MM/DD/YY HH:MM:SS)", required=True, max_length=100, default=time_default
         )
-        timezone = discord.ui.TextInput(
+        timezone: discord.ui.TextInput[ScheduleModal] = discord.ui.TextInput(
             label="Timezone (UTC offset +/-HH:MM)", required=False, max_length=100, default=timezone_default
         )
-        repeat = discord.ui.TextInput(
+        repeat: discord.ui.TextInput[ScheduleModal] = discord.ui.TextInput(
             label="Repeat every n minutes (0 to disable, min 60)",
             required=False,
             max_length=10,
             default=repeat_default,
         )
 
-        def __init__(self, scheduler: Scheduler, channel: MessageableGuildChannel):
+        def __init__(self, scheduler: Scheduler, channel: MessageableGuildChannel) -> None:
             """
             :param scheduler: The Scheduler object.
             :param channel: The MessageableGuildChannel for the scheduled message.
@@ -392,7 +416,7 @@ def get_schedule_modal(defaults: ScheduleModal | None = None) -> Type[ScheduleMo
             embed.set_footer(text='Click the "Edit" button below to edit your form.')
             await interaction.response.send_message(embed=embed, view=ScheduleEditView(self), ephemeral=True)
 
-    return _ScheduleModal
+    return ScheduleModal
 
 
 # The empty ScheduleModal with no defaults
@@ -415,7 +439,7 @@ class ScheduleView(discord.ui.View):
 
     # noinspection PyUnusedLocal
     @discord.ui.button(label="Create", style=discord.ButtonStyle.green)
-    async def create(self, interaction: discord.Interaction, button: discord.ui.Button) -> None:
+    async def create(self, interaction: discord.Interaction, button: discord.ui.Button[ScheduleView]) -> None:
         """
         The "Create" button for the view.
         """
@@ -441,7 +465,7 @@ class ScheduleEditView(discord.ui.View):
 
     # noinspection PyUnusedLocal
     @discord.ui.button(label="Edit", style=discord.ButtonStyle.green)
-    async def edit(self, interaction: discord.Interaction, button: discord.ui.Button) -> None:
+    async def edit(self, interaction: discord.Interaction, button: discord.ui.Button[ScheduleEditView]) -> None:
         """
         The "Edit" button for the view.
         """
@@ -469,7 +493,7 @@ class ScheduleMentionView(discord.ui.View):
 
     # noinspection PyUnusedLocal
     @discord.ui.button(label="Yes", style=discord.ButtonStyle.green)
-    async def yes(self, interaction: discord.Interaction, button: discord.ui.Button) -> None:
+    async def yes(self, interaction: discord.Interaction, button: discord.ui.Button[ScheduleMentionView]) -> None:
         """
         The "Yes" button for the view.
         """
@@ -482,7 +506,7 @@ class ScheduleMentionView(discord.ui.View):
 
     # noinspection PyUnusedLocal
     @discord.ui.button(label="No", style=discord.ButtonStyle.green)
-    async def no(self, interaction: discord.Interaction, button: discord.ui.Button) -> None:
+    async def no(self, interaction: discord.Interaction, button: discord.ui.Button[ScheduleMentionView]) -> None:
         """
         The "No" button for the view.
         """
@@ -495,7 +519,7 @@ class ScheduleMentionView(discord.ui.View):
 
     # noinspection PyUnusedLocal
     @discord.ui.button(label="Edit", style=discord.ButtonStyle.green)
-    async def edit(self, interaction: discord.Interaction, button: discord.ui.Button) -> None:
+    async def edit(self, interaction: discord.Interaction, button: discord.ui.Button[ScheduleMentionView]) -> None:
         """
         The "Edit" button for the view.
         """
@@ -524,7 +548,7 @@ class Scheduler(Cog):
         await self.init_db()
 
         # Populate schedules from database
-        schedules = []
+        schedules: list[SavedScheduleEvent] = []
         async with self.db.execute(
             r"""
             SELECT * 
@@ -958,7 +982,7 @@ class Scheduler(Cog):
     @commands.guild_only()
     @commands.hybrid_command()
     @discord.app_commands.describe(channel="The channel for the scheduled message.")
-    async def schedule(self, ctx: commands.Context, channel: MessageableGuildChannel | None) -> None:
+    async def schedule(self, ctx: commands.Context[Bot], channel: MessageableGuildChannel | None) -> None:
         """Schedules a message for the future.
 
         channel: The channel for the scheduled message.

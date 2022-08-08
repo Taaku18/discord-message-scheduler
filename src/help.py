@@ -53,7 +53,8 @@ class HelpCmd(commands.DefaultHelpCommand):
         self.paginator.add_line(heading)
         max_size = max_size or self.get_max_size(commands)
 
-        get_width = discord.utils._string_width
+        # noinspection PyProtectedMember
+        get_width = discord.utils._string_width  # type: ignore  # dpy type issue
         for command in commands:
             name = f"`{command.name}`"
             width = max_size - (get_width(name) - len(name))
@@ -93,18 +94,29 @@ class HelpCmd(commands.DefaultHelpCommand):
 
         no_category = f"\u200b{self.no_category}:"
 
-        def get_category(command, *, no_category=no_category):
-            cog = command.cog
-            return "**" + (cog.qualified_name + ":" if cog is not None else no_category) + "**"
+        # noinspection PyShadowingNames
+        def get_category(command, *, no_category=no_category):  # type: ignore  # dpy type issue
+            cog = command.cog  # type: ignore  # dpy type issue
+            return (
+                "**"
+                + (cog.qualified_name + ":" if cog is not None else no_category)  # type: ignore  # dpy type issue
+                + "**"
+            )  # type: ignore  # dpy type issue
 
-        filtered = await self.filter_commands(bot.commands, sort=True, key=get_category)
+        filtered = await self.filter_commands(
+            bot.commands, sort=True, key=get_category  # type: ignore  # dpy type issue
+        )
         max_size = self.get_max_size(filtered)
-        to_iterate = itertools.groupby(filtered, key=get_category)
+        to_iterate = itertools.groupby(  # type: ignore  # dpy type issue
+            filtered, key=get_category  # type: ignore  # dpy type issue
+        )
 
         # Now we can add the commands to the page.
-        for category, commands in to_iterate:
+        for category, commands in to_iterate:  # type: ignore  # dpy type issue
             commands = sorted(commands, key=lambda c: c.name) if self.sort_commands else list(commands)
-            self.add_indented_commands(commands, heading=category, max_size=max_size)
+            self.add_indented_commands(
+                commands, heading=category, max_size=max_size  # type: ignore  # dpy type issue
+            )
 
         note = self.get_ending_note()
         if note:

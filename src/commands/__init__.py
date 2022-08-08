@@ -1,1 +1,1 @@
-from .cog import Cog
+from .cog import Cog  # type: ignore[reportUnusedImport]

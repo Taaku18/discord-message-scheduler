@@ -27,7 +27,7 @@ class General(Cog):
         self.bot = bot
 
     @commands.hybrid_command()
-    async def info(self, ctx: commands.Context) -> None:
+    async def info(self, ctx: commands.Context[Bot]) -> None:
         """Shows info about me."""
         embed = discord.Embed(
             description=f"**{self.bot.user.name}** "  # type: ignore[reportOptionalMemberAccess]
