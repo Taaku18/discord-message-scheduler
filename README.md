@@ -137,7 +137,7 @@ You will also need a Discord bot.
 2. Install Python dependencies, choose a method from below:
    1. (Recommended) Using PDM
       1. [Install PDM](https://pdm.fming.dev/latest/#recommended-installation-method) 
-      2. Run `pdm sync --clean`
+      2. Run `pdm sync --clean --prod -G speed`
    2. Using pip
       ```sh
       python3.10 -m pip install -U pip
@@ -239,7 +239,7 @@ We use [PDM](https://pdm.fming.dev/latest/) as our dependency manager. See their
 * Add package: `pdm add <package name>`
 * Update package: `pdm update <package name>`
 * Remove package: `pdm remove <package name>`
-* Install dependencies: `pdm sync --clean` (this will also remove all non-project dependencies)
+* Install dependencies: `pdm sync --clean -G:all` (this will also remove all non-project dependencies)
 
 Optionally add `-dG <group name>` (development group) or `-G <group name>` (optional group) to the above commands if the package belongs to a specific group (ex. `lint`, `speed`).
 
