@@ -41,7 +41,7 @@ class Bot(commands.Bot):
         """
         Start the bot using the TOKEN env.
         """
-        return await super().start(TOKEN, *args, **kwargs)
+        await super().start(TOKEN, *args, **kwargs)
 
     async def setup_hook(self) -> None:
         """

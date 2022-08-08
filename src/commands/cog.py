@@ -12,7 +12,7 @@ from discord.ext.commands import Cog as _Cog
 
 if TYPE_CHECKING:
     # noinspection PyProtectedMember
-    from discord.ext.commands.cog import Context, BotT
+    from discord.ext.commands.cog import Context, BotT  # type: ignore[reportPrivateImportUsage]
 
 __all__ = ["Cog"]
 

@@ -30,7 +30,8 @@ class General(Cog):
     async def info(self, ctx: commands.Context) -> None:
         """Shows info about me."""
         embed = discord.Embed(
-            description=f'**{self.bot.user.name}** is a "helper" bot made by Taku.\n\n'
+            description=f"**{self.bot.user.name}** "  # type: ignore[reportOptionalMemberAccess]
+            'is a "helper" bot made by Taku.\n\n'
             "This bot is open sourced, my source code can be found "
             "[here](https://github.com/Taaku18/discord-message-scheduler).",
             colour=COLOUR,

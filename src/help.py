@@ -15,7 +15,7 @@ from .env import PREFIX, COLOUR
 
 if TYPE_CHECKING:
     # noinspection PyProtectedMember
-    from discord.ext.commands.help import Sequence, Command, Any, Optional, Mapping, List, Cog
+    from discord.ext.commands.help import Sequence, Command, Any, Optional, Mapping, List, Cog  # type: ignore[reportPrivateImportUsage]
 
 
 class HelpCmd(commands.DefaultHelpCommand):
@@ -128,10 +128,10 @@ class HelpCmd(commands.DefaultHelpCommand):
         parent: Optional[Group[Any, ..., Any]] = command.parent  # type: ignore # the parent will be a Group
         entries = []
         while parent is not None:
-            if not parent.signature or parent.invoke_without_command:
-                entries.append(parent.name)
+            if not parent.signature or parent.invoke_without_command:  # type: ignore  # dpy type issue
+                entries.append(parent.name)  # type: ignore  # dpy type issue
             else:
-                entries.append(parent.name + " " + parent.signature)
+                entries.append(parent.name + " " + parent.signature)  # type: ignore  # dpy type issue
             parent = parent.parent  # type: ignore
         parent_sig = " ".join(reversed(entries))
 

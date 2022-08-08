@@ -35,8 +35,9 @@ DEBUG_MODE = strtobool(os.getenv("DEBUG_MODE", "off"))
 if DEBUG_MODE:
     logger.warning("[red]Debug mode is activated.[/red]", extra={"markup": True})
 
-TOKEN = os.getenv("TOKEN")
-if not TOKEN:
+try:
+    TOKEN = os.environ["TOKEN"]
+except KeyError:
     logger.critical("[bold red]TOKEN not set.[/bold red]", extra={"markup": True})
     exit(1)
 
@@ -89,6 +90,7 @@ DEFAULT_TIMEZONE = os.getenv("DEFAULT_TIMEZONE", original_tz or _DEFAULT_TIMEZON
 try:
     # noinspection PyUnresolvedReferences
     from dateutil.tz import gettz
+
     # Set the TZ env to DEFAULT_TIMEZONE
     if gettz(DEFAULT_TIMEZONE) is not None and os.name != "nt":  # time.tzset() only support Unix systems
         os.environ["TZ"] = DEFAULT_TIMEZONE
@@ -104,9 +106,15 @@ except ModuleNotFoundError:
 try:
     # noinspection PyUnresolvedReferences
     import dateparser
+
     try:
         dateparser.parse(
-            "now", languages=["en"], settings={"TIMEZONE": DEFAULT_TIMEZONE, "DEFAULT_LANGUAGES": ["en"]}
+            "now",
+            languages=["en"],
+            settings={
+                "TIMEZONE": DEFAULT_TIMEZONE,
+                "DEFAULT_LANGUAGES": ["en"],
+            },  # type: ignore[reportGeneralTypeIssues]
         )  # test the timezone by attempting to get "now"
     except Exception as e:
         logger.warning("Timezone may be invalid, reverting default timezone to %s.", _DEFAULT_TIMEZONE, exc_info=e)

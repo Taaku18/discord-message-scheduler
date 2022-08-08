@@ -11,7 +11,7 @@ import logging
 import re
 import warnings
 from secrets import token_hex
-from typing import TYPE_CHECKING, NamedTuple, Type, Literal
+from typing import TYPE_CHECKING, NamedTuple, Type, Literal, cast, TypeAlias
 
 import aiosqlite
 import arrow
@@ -31,6 +31,7 @@ logger = logging.getLogger(__name__)
 
 DB_VERSION = 1
 TIME_PARSE_METHOD: Literal["dateparser"] | Literal["dateutil"] = "dateparser"  # options: 'dateutil', 'dateparser'
+MessageableGuildChannel: TypeAlias = discord.TextChannel | discord.VoiceChannel | discord.Thread
 
 
 class SanitizedScheduleEvent(NamedTuple):
@@ -38,8 +39,8 @@ class SanitizedScheduleEvent(NamedTuple):
     Represents a single scheduled message event after modal sanitization.
     """
 
-    author: discord.User | discord.Member
-    channel: discord.TextChannel
+    author: discord.Member
+    channel: MessageableGuildChannel
     message: str
     time: arrow.Arrow
     repeat: float | None
@@ -50,8 +51,8 @@ class ScheduleEvent(NamedTuple):
     Represents a single scheduled message event.
     """
 
-    author: discord.User | discord.Member
-    channel: discord.TextChannel
+    author: discord.Member
+    channel: MessageableGuildChannel
     message: str
     time: arrow.Arrow
     repeat: float | None
@@ -66,7 +67,7 @@ class ScheduleEvent(NamedTuple):
         :param mention: Whether mention is allowed.
         :return: The converted ScheduleEvent.
         """
-        return cls(*(event + (mention,)))
+        return cls(event.author, event.channel, event.message, event.time, event.repeat, mention)
 
 
 class SavedScheduleEvent(NamedTuple):
@@ -100,13 +101,15 @@ class SavedScheduleEvent(NamedTuple):
 
         :return: New SavedScheduleEvent with updated next_event_time.
         """
+        if self.repeat is None:
+            raise ValueError("repeat cannot be None to do_repeat().")
         return SavedScheduleEvent(
             self.id,
             self.message,
             self.guild_id,
             self.channel_id,
             self.author_id,
-            current_timestamp + self.repeat * 60,
+            int(current_timestamp + self.repeat * 60),
             self.repeat,
             self.canceled,
             self.mention,
@@ -196,10 +199,10 @@ def get_schedule_modal(defaults: ScheduleModal | None = None) -> Type[ScheduleMo
             default=repeat_default,
         )
 
-        def __init__(self, scheduler: Scheduler, channel: discord.TextChannel):
+        def __init__(self, scheduler: Scheduler, channel: MessageableGuildChannel):
             """
             :param scheduler: The Scheduler object.
-            :param channel: The TextChannel for the scheduled message.
+            :param channel: The MessageableGuildChannel for the scheduled message.
             """
             self.scheduler = scheduler
             self.channel = channel
@@ -217,6 +220,12 @@ def get_schedule_modal(defaults: ScheduleModal | None = None) -> Type[ScheduleMo
             :return: The sanitized ScheduleEvent.
             """
 
+            if self.time.value is None or self.message.value is None:
+                raise ValueError("time and message cannot be None here since they are non-optional.")
+
+            if not isinstance(interaction.user, discord.Member):
+                raise ValueError("interaction.user must be a Member (cannot be ran from DM).")
+
             if TIME_PARSE_METHOD == "dateutil":
                 from dateutil import parser as du_parser
 
@@ -225,10 +234,10 @@ def get_schedule_modal(defaults: ScheduleModal | None = None) -> Type[ScheduleMo
                     with warnings.catch_warnings():  # will raise exception is an unknown timezone is detected
                         # noinspection PyUnresolvedReferences
                         warnings.simplefilter(
-                            "error", du_parser.UnknownTimezoneWarning
+                            "error", du_parser.UnknownTimezoneWarning  # type: ignore[reportGeneralTypeIssues]
                         )  # exists, but editor is weird
                         naive_time = du_parser.parse(self.time.value)
-                except du_parser.UnknownTimezoneWarning as e:  # noqa
+                except du_parser.UnknownTimezoneWarning as e:  # type: ignore[reportGeneralTypeIssues]
                     raise BadTimezone(None) from e
                 except du_parser.ParserError as e:  # fails to parse time
                     raise BadTimeString(self.time.value) from e
@@ -255,7 +264,7 @@ def get_schedule_modal(defaults: ScheduleModal | None = None) -> Type[ScheduleMo
                             "TIMEZONE": self.timezone.value,
                             "RETURN_AS_TIMEZONE_AWARE": True,
                             "DEFAULT_LANGUAGES": TIME_LANG,
-                        },
+                        },  # type: ignore[reportGeneralTypeIssues]
                     )
                 except Exception as e:
                     if e.__class__.__name__ == "UnknownTimeZoneError":  # invalid timezone
@@ -395,10 +404,10 @@ class ScheduleView(discord.ui.View):
     A single-button view for prefixed command to trigger the schedule modal.
     """
 
-    def __init__(self, scheduler: Scheduler, channel: discord.TextChannel) -> None:
+    def __init__(self, scheduler: Scheduler, channel: MessageableGuildChannel) -> None:
         """
         :param scheduler: The Scheduler object.
-        :param channel: The TextChannel for the scheduled message.
+        :param channel: The MessageableGuildChannel for the scheduled message.
         """
         self.scheduler = scheduler
         self.channel = channel
@@ -411,10 +420,11 @@ class ScheduleView(discord.ui.View):
         The "Create" button for the view.
         """
         await interaction.response.send_modal(ScheduleModal(self.scheduler, self.channel))
-        try:
-            await interaction.message.edit(view=None)
-        finally:  # Somehow fails to edit
-            self.stop()
+        if interaction.message:
+            try:
+                await interaction.message.edit(view=None)
+            finally:  # Somehow fails to edit
+                self.stop()
 
 
 class ScheduleEditView(discord.ui.View):
@@ -502,7 +512,7 @@ class Scheduler(Cog):
 
     def __init__(self, bot: Bot) -> None:
         self.bot = bot
-        self.db: aiosqlite.Connection | None = None
+        self.db: aiosqlite.Connection = cast(aiosqlite.Connection, None)
         self.schedule_heap: list[SavedScheduleEvent] = []
         self.heap_lock = asyncio.Lock()
 
@@ -682,7 +692,10 @@ class Scheduler(Cog):
                     "mention": int(event.mention),
                 },
             ) as cur:
-                event_db = SavedScheduleEvent.from_row(await cur.fetchone())
+                row = await cur.fetchone()
+                if row is None:
+                    raise ValueError("Something went wrong with SQLite, row should not be None.")
+                event_db = SavedScheduleEvent.from_row(row)
 
             await self.db.commit()
             return event_db
@@ -714,7 +727,10 @@ class Scheduler(Cog):
                 """,
                     {"id": cur.lastrowid},
                 ) as cur2:
-                    event_db = SavedScheduleEvent.from_row(await cur2.fetchone())
+                    row = await cur2.fetchone()
+                    if row is None:
+                        raise ValueError("Something went wrong with SQLite, row should not be None.")
+                    event_db = SavedScheduleEvent.from_row(row)
             await self.db.commit()
             return event_db
 
@@ -805,7 +821,12 @@ class Scheduler(Cog):
         """,
             {"id": event.id},
         ) as cur:
-            if (await cur.fetchone())[0]:  # if canceled is true
+            row = await cur.fetchone()
+            if row is None:
+                logger.error("Row should not be None, why was this deleted?")
+                return False
+
+            if row[0]:  # if canceled is true
                 logger.warning("Event with ID %d was canceled.", event.id)
                 return False
 
@@ -819,6 +840,9 @@ class Scheduler(Cog):
         channel = guild.get_channel_or_thread(event.channel_id)
         if not channel:
             logger.warning("Event with ID %d channel not found.", event.id)
+            return False
+        if not hasattr(channel, "send"):
+            logger.warning("Event with ID %d channel is not a messageable channel.", event.id)
             return False
 
         # Check if user is still in guild
@@ -851,9 +875,72 @@ class Scheduler(Cog):
                     event.id,
                 )
             allowed_mentions = discord.AllowedMentions.none()
-        await channel.send(event.message, allowed_mentions=allowed_mentions)
+        # channel has .send since invalid channel typed are filtered above with hasattr(channel, 'send')
+        await channel.send(event.message, allowed_mentions=allowed_mentions)  # type: ignore[reportGeneralTypeIssues]
         # TODO: add a "report abuse" feature/command, save all sent msg in a db table with the id
         return True
+
+    async def _scheduler_event_loop(self) -> None:
+        """
+        Internal iteration of the scheduler event loop.
+        """
+        should_sleep = False
+        while not should_sleep:
+            should_sleep = True
+
+            if self.schedule_heap:
+                async with self.heap_lock:  # pop the next event from heap
+                    next_event = heapq.heappop(self.schedule_heap)
+
+                now = arrow.utcnow().timestamp()
+                # Time has past
+                if next_event.next_event_time < now:
+                    should_sleep = False
+                    try:
+                        # Attempt to send the message
+                        success = await self.send_scheduled_message(next_event)
+                    except Exception as e:
+                        # Something unexpected went wrong
+                        logger.error(
+                            "Something went wrong while sending the scheduled message with event ID %d.",
+                            next_event.id,
+                            exc_info=e,
+                        )
+                        success = False
+
+                    if not success or next_event.repeat is None:
+                        # If the message failed to send or the message isn't on repeat, then cancel the schedule
+                        async with self.db.execute(
+                            r"""
+                                UPDATE Scheduler
+                                    SET canceled=1
+                                    WHERE id=$id
+                            """,
+                            {"id": next_event.id},
+                        ):
+                            pass
+                        await self.db.commit()
+
+                    else:
+                        # Otherwise, update the next_event_time
+                        new_event = next_event.do_repeat(int(now))
+                        async with self.db.execute(
+                            r"""
+                                UPDATE Scheduler
+                                    SET next_event_time=$next_event_time
+                                    WHERE id=$id
+                            """,
+                            {"next_event_time": new_event.next_event_time, "id": next_event.id},
+                        ):
+                            pass
+                        await self.db.commit()
+                        # re-add the updated event
+                        async with self.heap_lock:
+                            heapq.heappush(self.schedule_heap, new_event)
+                else:
+                    # re-add the original event when the time isn't up yet
+                    async with self.heap_lock:
+                        heapq.heappush(self.schedule_heap, next_event)
 
     async def scheduler_event_loop(self) -> None:
         """
@@ -862,70 +949,16 @@ class Scheduler(Cog):
         await self.bot.wait_until_ready()
 
         while not self.bot.is_closed():
-            should_sleep = False
-            while not should_sleep:
-                should_sleep = True
-
-                if self.schedule_heap:
-                    async with self.heap_lock:  # pop the next event from heap
-                        next_event = heapq.heappop(self.schedule_heap)
-
-                    now = arrow.utcnow().timestamp()
-                    # Time has past
-                    if next_event.next_event_time < now:
-                        should_sleep = False
-                        try:
-                            # Attempt to send the message
-                            success = await self.send_scheduled_message(next_event)
-                        except Exception as e:
-                            # Something unexpected went wrong
-                            logger.error(
-                                "Something went wrong while sending the scheduled message with event ID %d.",
-                                next_event.id,
-                                exc_info=e,
-                            )
-                            success = False
-
-                        if not success or next_event.repeat is None:
-                            # If the message failed to send or the message isn't on repeat, then cancel the schedule
-                            async with self.db.execute(
-                                r"""
-                                UPDATE Scheduler
-                                    SET canceled=1
-                                    WHERE id=$id
-                            """,
-                                {"id": next_event.id},
-                            ):
-                                pass
-                            await self.db.commit()
-
-                        else:
-                            # Otherwise, update the next_event_time
-                            new_event = next_event.do_repeat(int(now))
-                            async with self.db.execute(
-                                r"""
-                                UPDATE Scheduler
-                                    SET next_event_time=$next_event_time
-                                    WHERE id=$id
-                            """,
-                                {"next_event_time": new_event.next_event_time, "id": next_event.id},
-                            ):
-                                pass
-                            await self.db.commit()
-                            # re-add the updated event
-                            async with self.heap_lock:
-                                heapq.heappush(self.schedule_heap, new_event)
-                    else:
-                        # re-add the original event when the time isn't up yet
-                        async with self.heap_lock:
-                            heapq.heappush(self.schedule_heap, next_event)
-
+            try:
+                await self._scheduler_event_loop()
+            except Exception as e:
+                logger.error("An uncaught error was raised during scheduled event loop.", exc_info=e)
             await asyncio.sleep(1)
 
     @commands.guild_only()
     @commands.hybrid_command()
     @discord.app_commands.describe(channel="The channel for the scheduled message.")
-    async def schedule(self, ctx: commands.Context, channel: discord.TextChannel | None) -> None:
+    async def schedule(self, ctx: commands.Context, channel: MessageableGuildChannel | None) -> None:
         """Schedules a message for the future.
 
         channel: The channel for the scheduled message.
@@ -933,7 +966,16 @@ class Scheduler(Cog):
         """
 
         if channel is None:
+            if not isinstance(ctx.channel, MessageableGuildChannel):
+                raise ValueError("Where else was this command ran?")
+
             channel = ctx.channel
+
+        if not isinstance(ctx.author, discord.Member):
+            raise ValueError("How does a non-member run this command?")
+
+        if not isinstance(ctx.me, discord.Member):
+            raise ValueError("Why am I not a member?")
 
         # Check if the user has permission
         perms = channel.permissions_for(ctx.author)

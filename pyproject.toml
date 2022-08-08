@@ -6,6 +6,7 @@ target-version = ['py310']
 [tool.pdm.dev-dependencies]
 lint = [
     "black>=22.6.0",
+    "pyright>=1.1.265",
 ]
 
 [project]
@@ -37,3 +38,14 @@ speed = [
 [build-system]
 requires = ["pdm-pep517>=1.0.0"]
 build-backend = "pdm.pep517.api"
+
+[tool.pyright]
+exclude = ["**/node_modules",
+    "**/__pycache__",
+    "**/venv",
+]
+
+reportMissingImports = true
+
+pythonVersion = "3.10"
+pythonPlatform = "Linux"
