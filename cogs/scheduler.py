@@ -10,6 +10,7 @@ import heapq
 import logging
 import re
 import warnings
+from math import ceil
 from secrets import token_hex
 from typing import TYPE_CHECKING, NamedTuple, Type, Literal, cast, TypeAlias, Any
 
@@ -274,6 +275,7 @@ def get_schedule_modal(defaults: ScheduleModal | None = None) -> Type[ScheduleMo
             :return: The sanitized ScheduleEvent.
             """
 
+            logger.debug("Sanitizing schedule event.")
             if self.time.value is None or self.message.value is None:
                 raise ValueError("time and message cannot be None here since they are non-optional.")
 
@@ -377,6 +379,7 @@ def get_schedule_modal(defaults: ScheduleModal | None = None) -> Type[ScheduleMo
             try:
                 event = self.sanitize_response(interaction)
             except BadTimezone as e:
+                logger.debug("Bad timezone: %s.", e.timezone, exc_info=e)
                 if e.timezone is None:
                     # Invalid timezone in dateutil.parser.parse
                     embed = discord.Embed(
@@ -391,6 +394,7 @@ def get_schedule_modal(defaults: ScheduleModal | None = None) -> Type[ScheduleMo
                         colour=COLOUR,
                     )
             except TimeInPast as e:  # time is in the past
+                logger.debug("Bad time: %s.", e.time, exc_info=e)
                 embed = discord.Embed(
                     description=f"The time you inputted is in the past (<t:{int(e.time.timestamp())}>). "
                     f"Double check the time is valid or try one of the formats below.",
@@ -400,6 +404,7 @@ def get_schedule_modal(defaults: ScheduleModal | None = None) -> Type[ScheduleMo
                     name="Valid time formats:", value="\n".join(self.acceptable_formats) + "\n- And More..."
                 )
             except InvalidRepeat as e:  # repeat is invalid
+                logger.debug("Bad repeat %s.", self.repeat, exc_info=e)
                 embed = discord.Embed(description=e.reason, colour=COLOUR)
             except BadTimeString as e:  # time parse error
                 embed = discord.Embed(
@@ -414,6 +419,7 @@ def get_schedule_modal(defaults: ScheduleModal | None = None) -> Type[ScheduleMo
                 mentions = re.search(r"@(everyone|here|[!&]?[0-9]{17,20})", event.message)
 
                 if mentions is not None:
+                    logger.debug("Event has mention.")
                     perms_author = self.channel.permissions_for(event.author)
                     perms_bot = self.channel.permissions_for(self.channel.guild.me)
 
@@ -421,9 +427,18 @@ def get_schedule_modal(defaults: ScheduleModal | None = None) -> Type[ScheduleMo
                     if mentions.group(1) in {"everyone", "here"} or mentions.group(1).startswith("&"):
                         # Bot will need permissions to ping as well
                         check = perms_author.mention_everyone and perms_bot.mention_everyone
+                        logger.debug(
+                            "Checking all mentions, author: %s bot: %s.",
+                            perms_author.mention_everyone,
+                            perms_bot.mention_everyone,
+                        )
                     else:
                         check = perms_author.mention_everyone
+                        logger.debug("Checking all mentions, author: %s.", perms_author.mention_everyone)
+
                     if check:  # if pinging is a possibility
+                        logger.info("Sending mention approval form.")
+
                         embed = discord.Embed(
                             title="This scheduled message contains mentions",
                             description="Click **Yes** if the mentions should ping "
@@ -437,11 +452,13 @@ def get_schedule_modal(defaults: ScheduleModal | None = None) -> Type[ScheduleMo
                         )
                         return
 
+                logger.info("Saving event: no mention or no perms.")
                 # Message has no mentions, or the bot or user cannot mention in this channel,
                 # so don't bother asking
                 await self.scheduler.save_event(interaction, ScheduleEvent.from_sanitized(event, False))
                 return
 
+            logger.info("Failed to save, sending edit form.")
             # If failed
             embed.set_footer(text='Click the "Edit" button below to edit your form.')
             await interaction.response.send_message(
@@ -480,8 +497,10 @@ class ScheduleView(discord.ui.View):
         The "Create" button for the view.
         """
         if interaction.user.id != self.author.id:
+            logger.debug("Button clicked by a non-author.")
             return
 
+        logger.info("Creating a schedule modal from schedule view.")
         await interaction.response.send_modal(ScheduleModal(self.scheduler, self.channel))
         if interaction.message:
             try:
@@ -511,8 +530,10 @@ class ScheduleEditView(discord.ui.View):
         The "Edit" button for the view.
         """
         if interaction.user.id != self.author.id:
+            logger.debug("Button clicked by a non-author.")
             return
 
+        logger.info("Creating a schedule modal from edit schedule view.")
         await interaction.response.send_modal(
             get_schedule_modal(self.last_schedule_modal)(
                 self.last_schedule_modal.scheduler, self.last_schedule_modal.channel
@@ -549,8 +570,10 @@ class ScheduleMentionView(discord.ui.View):
         The "Yes" button for the view.
         """
         if interaction.user.id != self.author.id:
+            logger.debug("Button clicked by a non-author.")
             return
 
+        logger.info("Saving schedule event with mention.")
         try:
             await self.last_schedule_modal.scheduler.save_event(
                 interaction, ScheduleEvent.from_sanitized(self.event, True)
@@ -565,8 +588,10 @@ class ScheduleMentionView(discord.ui.View):
         The "No" button for the view.
         """
         if interaction.user.id != self.author.id:
+            logger.debug("Button clicked by a non-author.")
             return
 
+        logger.info("Saving schedule event without mention.")
         try:
             await self.last_schedule_modal.scheduler.save_event(
                 interaction, ScheduleEvent.from_sanitized(self.event, False)
@@ -581,8 +606,10 @@ class ScheduleMentionView(discord.ui.View):
         The "Edit" button for the view.
         """
         if interaction.user.id != self.author.id:
+            logger.debug("Button clicked by a non-author.")
             return
 
+        logger.info("Edit schedule modal from mention view.")
         await interaction.response.send_modal(
             get_schedule_modal(self.last_schedule_modal)(
                 self.last_schedule_modal.scheduler, self.last_schedule_modal.channel
@@ -596,7 +623,7 @@ class ScheduleListView(discord.ui.View):
     A view that paginates /list by LIMIT_PER_PAGE using buttons.
     """
 
-    LIMIT_PER_PAGE = 10
+    LIMIT_PER_PAGE = 2
 
     def __init__(
         self, scheduler: Scheduler, author: discord.User | discord.Member, channel: MessageableGuildChannel | None
@@ -610,6 +637,8 @@ class ScheduleListView(discord.ui.View):
         self.author = author
         self.current_page = 0
         self.channel = channel
+        self.responded = False
+
         if self.channel is None:
             self.raw_query = r"""
                 SELECT * 
@@ -657,6 +686,10 @@ class ScheduleListView(discord.ui.View):
         if interaction.guild is None:
             raise ValueError("Guild shouldn't be None here.")  # TODO: support DM command - list all schedules
 
+        logger.info(
+            "Rendering list view for %s at %s, page idx: %d.", self.author, self.channel, self.current_page
+        )
+
         author = interaction.author if isinstance(interaction, commands.Context) else interaction.user
         params = {
             "author_id": author.id,
@@ -667,11 +700,14 @@ class ScheduleListView(discord.ui.View):
         # Get the total row count
         async with self.scheduler.db.execute(self.raw_count_query, params) as cur:
             row = await cur.fetchone()
+
         if row is None:
             raise ValueError("Something went wrong with the DB.")
         total_count: int = row[0]
+        logger.debug("Found %d schedule events.", total_count)
 
         if total_count == 0:  # no scheduled messages
+            logger.debug("No schedules found.")
             if self.channel is None:
                 embed = discord.Embed(description="You have no scheduled messages.", colour=COLOUR)
             else:
@@ -686,11 +722,11 @@ class ScheduleListView(discord.ui.View):
             return
 
         start_index = self.current_page * self.LIMIT_PER_PAGE
-        if start_index >= total_count:  # if the index is beyond the total count, back up a page
-            start_index -= 1
-            if start_index < 0:
-                start_index = 0
+        if start_index >= total_count:  # if the index is beyond the total count, goto last page
+            self.current_page = ceil(total_count / self.LIMIT_PER_PAGE) - 1  # get last page
+            start_index = self.current_page * self.LIMIT_PER_PAGE
 
+        logger.debug("Querying schedule from %d with limit of %d.", start_index, self.LIMIT_PER_PAGE)
         # Populate schedules from database
         schedules: list[SavedScheduleEvent] = []
         async with self.scheduler.db.execute(
@@ -701,11 +737,11 @@ class ScheduleListView(discord.ui.View):
                 schedules += [SavedScheduleEvent.from_row(row)]
 
         if self.channel is None:
-            title = f"{author}'s scheduled messages:"
+            title = f"{author}'s Scheduled Messages"
         else:
-            title = f"{author}'s scheduled messages in {self.channel}:"
+            title = f"{author}'s Scheduled Messages in {self.channel}"
 
-        description = ""
+        description = ""  # format the schedule description, limit 2000 character
         for schedule in schedules:
             description += f"**ID: {schedule.id}** <t:{schedule.next_event_time}>"
             if self.channel is None:
@@ -728,14 +764,20 @@ class ScheduleListView(discord.ui.View):
         embed = discord.Embed(title=title, description=description, colour=COLOUR)
 
         kwargs: dict[str, Any] = {}
-        if total_count > self.LIMIT_PER_PAGE:
+        if total_count > self.LIMIT_PER_PAGE:  # more than one page
             kwargs["view"] = self
-            embed.set_footer(text=f"Page {self.current_page + 1} of {total_count // self.LIMIT_PER_PAGE}")
+            embed.set_footer(text=f"Page {self.current_page + 1} of {ceil(total_count / self.LIMIT_PER_PAGE)}")
 
-        if isinstance(interaction, commands.Context):
-            await interaction.reply(embed=embed, **kwargs)
+        if self.responded:
+            if isinstance(interaction, commands.Context):
+                raise ValueError("Should only be interaction here (from button click).")
+            await interaction.response.edit_message(embed=embed, **kwargs)
         else:
-            await interaction.response.send_message(embed=embed, **kwargs)
+            if isinstance(interaction, commands.Context):
+                await interaction.reply(embed=embed, **kwargs)
+            else:
+                await interaction.response.send_message(embed=embed, **kwargs)
+            self.responded = True
 
     # noinspection PyUnusedLocal
     @discord.ui.button(style=discord.ButtonStyle.green, emoji="⏪")
@@ -744,7 +786,9 @@ class ScheduleListView(discord.ui.View):
         The "Back" button for the view.
         """
         if interaction.user.id != self.author.id:
+            logger.debug("Button clicked by a non-author.")
             return
+
         self.current_page -= 1
         if self.current_page < 0:
             self.current_page = 0
@@ -757,7 +801,9 @@ class ScheduleListView(discord.ui.View):
         The "Next" button for the view.
         """
         if interaction.user.id != self.author.id:
+            logger.debug("Button clicked by a non-author.")
             return
+
         self.current_page += 1
         await self.render(interaction)
 
@@ -775,9 +821,11 @@ class Scheduler(Cog):
         """
         This is called when cog is loaded.
         """
+        logger.info("Loading scheduler cog.")
         # Setup database
         await self.init_db()
 
+        logger.debug("Populating schedules.")
         # Populate schedules from database
         schedules: list[SavedScheduleEvent] = []
         async with self.db.execute(
@@ -790,6 +838,8 @@ class Scheduler(Cog):
         ) as cur:
             async for row in cur:
                 schedules += [SavedScheduleEvent.from_row(row)]
+
+        logger.info("Populated %d schedules.", len(schedules))
 
         async with self.heap_lock:
             self.schedule_heap = schedules
@@ -927,6 +977,7 @@ class Scheduler(Cog):
 
         await self.db.commit()  # commit the changes
 
+    logger.info("Using SQLite version %s.", aiosqlite.sqlite_version)
     # Older versions don't support RETURNING in SQLite
     if version.parse(aiosqlite.sqlite_version) >= version.parse("3.35.0"):
 
@@ -1017,6 +1068,7 @@ class Scheduler(Cog):
             :return: The saved SavedScheduleEvent.
             """
 
+            logger.debug("Inserting %s into DB.", event)
             async with self.db.execute(
                 r"""
                     INSERT INTO Scheduler (message, guild_id, channel_id, 
@@ -1309,6 +1361,7 @@ class Scheduler(Cog):
                         ):
                             pass
                         await self.db.commit()
+                        logger.info("Canceled %s because it failed.", next_event)
 
                     else:
                         # Otherwise, update the next_event_time
@@ -1348,6 +1401,8 @@ class Scheduler(Cog):
         """
         Internal callback for /schedule create, schedule, and schedule create to create a scheduled message.
         """
+        logger.debug("%s is trying to create a schedule.", ctx.author)
+
         if channel is None:
             if not isinstance(ctx.channel, MessageableGuildChannel):
                 raise ValueError("Where else was this command ran?")
@@ -1363,6 +1418,7 @@ class Scheduler(Cog):
         # Check if the user has permission
         perms = channel.permissions_for(ctx.author)
         if not perms.read_messages or not perms.send_messages:
+            logger.debug("Author has no send or read messages perms for create.")
             embed = discord.Embed(
                 description=f"You must have **send messages** permissions in {channel.mention}.", colour=COLOUR
             )
@@ -1371,6 +1427,7 @@ class Scheduler(Cog):
         # Check if the bot has permission
         perms = channel.permissions_for(ctx.me)
         if not perms.read_messages or not perms.send_messages:
+            logger.debug("Bot has no send or read messages perms for create.")
             embed = discord.Embed(description=f"I don't have permission in {channel.mention}.", colour=COLOUR)
             await ctx.reply(embed=embed)
             return
@@ -1428,6 +1485,7 @@ class Scheduler(Cog):
         """List your scheduled messages.
         `channel` - The channel to list scheduled messages.
         """
+        logger.debug("%s is trying to list a schedule.", ctx.author)
 
         await ScheduleListView(self, ctx.author, channel).render(ctx)
 
@@ -1438,6 +1496,8 @@ class Scheduler(Cog):
         """Show related info of a scheduled message event.
         `event_id` - The event ID of the scheduled message (see `/list`).
         """
+
+        logger.debug("%s is trying to show schedule %d.", ctx.author, event_id)
 
         if not ctx.guild:
             raise ValueError("Shouldn't be None here.")
@@ -1457,6 +1517,7 @@ class Scheduler(Cog):
         ) as cur:
             row = await cur.fetchone()
         if row is None:
+            logger.debug("No scheduled messages found.")
             embed = discord.Embed(
                 description=f"You do not have a scheduled message with Event ID #{event_id}.", colour=COLOUR
             )
@@ -1471,12 +1532,14 @@ class Scheduler(Cog):
         return
 
     @commands.guild_only()
-    @schedule.command(name="remove", aliases=["delete"])
+    @schedule.command(name="delete", aliases=["remove"])
     @discord.app_commands.describe(event_id="The event ID of the scheduled message (see `/list`).")
-    async def schedule_remove(self, ctx: commands.Context[Bot], event_id: int) -> None:
-        """Remove a previously scheduled message event.
+    async def schedule_delete(self, ctx: commands.Context[Bot], event_id: int) -> None:
+        """Delete a previously scheduled message event.
         `event_id` - The event ID of the scheduled message (see `/list`).
         """
+        logger.debug("%s is trying to delete schedule %d.", ctx.author, event_id)
+
         if not ctx.guild:
             raise ValueError("Shouldn't be None here.")
 
