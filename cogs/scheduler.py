@@ -623,7 +623,7 @@ class ScheduleListView(discord.ui.View):
     A view that paginates /list by LIMIT_PER_PAGE using buttons.
     """
 
-    LIMIT_PER_PAGE = 2
+    LIMIT_PER_PAGE = 10
 
     def __init__(
         self, scheduler: Scheduler, author: discord.User | discord.Member, channel: MessageableGuildChannel | None
