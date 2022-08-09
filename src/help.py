@@ -26,7 +26,7 @@ class HelpCmd(commands.DefaultHelpCommand):
             "paginator": commands.Paginator(prefix=None, suffix=None),  # no prefix/suffix since we're using embeds
             "dm_help": None,  # <1000 guild, >1000 in dm
             "dm_help_threshold": 1000,
-            "commands_heading": "**Commands:**",
+            "commands_heading": "**Additional Commands:**",
             "command_attrs": {"hidden": True},  # don't show help command in help
         }
         super().__init__(**kwargs)
@@ -57,7 +57,7 @@ class HelpCmd(commands.DefaultHelpCommand):
         # noinspection PyProtectedMember
         get_width = discord.utils._string_width  # type: ignore  # dpy type issue
         for command in commands:
-            name = f"`{command.name}`"
+            name = f"`{command.qualified_name}`"
             width = max_size - (get_width(name) - len(name))
             entry = f'{self.indent * " "}{name:<{width}} {command.short_doc}'
             self.paginator.add_line(self.shorten_text(entry))

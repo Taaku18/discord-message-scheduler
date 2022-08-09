@@ -7,12 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 ### Added
 - Pyright static checker
+- Added `/schedule list` and `/schedule remove`
 
 ### Fixed
 - Many internal typing issues
+- Prevent other users from clicking your buttons
 
 ### Changed
 - Optimized Docker image
+- `/schedule` command is now `/schedule create`
 
 
 ## [1.1.1] - 2022-08-07
