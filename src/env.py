@@ -20,6 +20,7 @@ __all__ = [
     "PREFIX",
     "COLOUR",
     "SCHEDULER_DATABASE_PATH",
+    "PYPROJECT_TOML_PATH",
     "DEBUG_GUILDS",
     "SYNC_SLASH_COMMANDS",
     "DEFAULT_TIMEZONE",
@@ -51,6 +52,8 @@ SCHEDULER_DATABASE_NAME = "schedule.db"
 SCHEDULER_DATABASE_PATH = os.path.join(
     os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "data", SCHEDULER_DATABASE_NAME
 )
+
+PYPROJECT_TOML_PATH = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "pyproject.toml")
 
 # Configure debug servers
 if "DEBUG_GUILDS" in os.environ:

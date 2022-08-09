@@ -16,6 +16,7 @@ from .env import PREFIX, COLOUR
 if TYPE_CHECKING:
     # noinspection PyProtectedMember
     from discord.ext.commands.help import Command, Cog  # type: ignore[reportPrivateImportUsage]
+    from .bot import Bot
 
 
 class HelpCmd(commands.DefaultHelpCommand):
@@ -76,10 +77,14 @@ class HelpCmd(commands.DefaultHelpCommand):
             embed = discord.Embed(description="Check your DM.", colour=COLOUR)
             await self.context.channel.send(embed=embed)
 
+        bot: Bot = self.context.bot  # type: ignore[reportGeneralTypeIssues]
+
         for i, page in enumerate(self.paginator.pages, start=1):
             embed = discord.Embed(description=page, colour=COLOUR)
+            footer = f"Bot version: {bot.version}"
             if total_pages > 1:  # if more than 1 page, add a page no. footer
-                embed.set_footer(text=f"Page {i} of {total_pages}")
+                footer += f" · Page {i} of {total_pages}"
+            embed.set_footer(text=footer)
             await destination.send(embed=embed)
 
     async def send_bot_help(self, mapping: Mapping[Optional[Cog], List[Command[Any, ..., Any]]], /) -> None:

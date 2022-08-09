@@ -207,7 +207,7 @@ Find the **CONTAINER ID** of the container named "discord-message-scheduler" and
 
 - [x] Basic help and schedule command interfaces
 - [x] Create a Docker image
-- [ ] Implement list/delete command
+- [x] Implement list/delete command
     - [ ] Allow server staff access to these commands
 - [ ] Implement reporting interface to remove abusive scheduled messages
 - [ ] Permissions system

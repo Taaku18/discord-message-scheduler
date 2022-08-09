@@ -157,7 +157,7 @@ dependencies = [
     "Brotli",
     "aiodns>=1.1",
     "cchardet",
-    "discord.py @ git+https://github.com/Rapptz/discord.py@d4cc8d30",
+    "discord.py @ git+https://github.com/Rapptz/discord.py@d4cc8d3006bd50392e4422c12046bdfdd4a5a0d2",
     "orjson>=3.5.4",
 ]
 
@@ -222,7 +222,7 @@ summary = "A small Python module for determining appropriate platform-specific d
 
 [[package]]
 name = "pycares"
-version = "4.2.1"
+version = "4.2.2"
 summary = "Python interface for c-ares"
 dependencies = [
     "cffi>=1.5.0",
@@ -358,7 +358,7 @@ dependencies = [
 
 [metadata]
 lock_version = "4.0"
-content_hash = "sha256:238a6dc01680ccb3eaa7ecd3f883f1f833c12424deb564d9d21cec8846c7b568"
+content_hash = "sha256:2a54721dc76f311935e23f86262af7d7e92214d3bc9197247fecfc209fcad61b"
 
 [metadata.files]
 "aiodns 3.0.0" = [
@@ -851,38 +851,56 @@ content_hash = "sha256:238a6dc01680ccb3eaa7ecd3f883f1f833c12424deb564d9d21cec884
     {url = "https://files.pythonhosted.org/packages/ed/22/967181c94c3a4063fe64e15331b4cb366bdd7dfbf46fcb8ad89650026fec/platformdirs-2.5.2-py3-none-any.whl", hash = "sha256:027d8e83a2d7de06bbac4e5ef7e023c02b863d7ea5d079477e722bb41ab25788"},
     {url = "https://files.pythonhosted.org/packages/ff/7b/3613df51e6afbf2306fc2465671c03390229b55e3ef3ab9dd3f846a53be6/platformdirs-2.5.2.tar.gz", hash = "sha256:58c8abb07dcb441e6ee4b11d8df0ac856038f944ab98b7be6b27b2a3c7feef19"},
 ]
-"pycares 4.2.1" = [
-    {url = "https://files.pythonhosted.org/packages/04/05/fcc900930c3a82d5b6ead791f6453b35e673c6ce220cbef56e43496dbc2c/pycares-4.2.1-cp39-cp39-macosx_10_9_x86_64.whl", hash = "sha256:6724573e830ea2345f4bcf0f968af64cc6d491dc2133e9c617f603445dcdfa58"},
-    {url = "https://files.pythonhosted.org/packages/16/22/0dfcc81b72202d8ea11e5465ee8637f4ec3d398790ef185b6045b503494d/pycares-4.2.1-cp39-cp39-win_amd64.whl", hash = "sha256:fbd53728d798d07811898e11991e22209229c090eab265a53d12270b95d70d1a"},
-    {url = "https://files.pythonhosted.org/packages/28/df/acde47c2fa42caaf1c771762a342a807c33e4428b45035decd4d63599a35/pycares-4.2.1-cp37-cp37m-manylinux_2_5_x86_64.manylinux1_x86_64.manylinux_2_12_x86_64.manylinux2010_x86_64.whl", hash = "sha256:2113529004df4894783eaa61e9abc3a680756b6f033d942f2800301ae8c71c29"},
-    {url = "https://files.pythonhosted.org/packages/2d/99/026ddda977633030f5bed20c7d12ea19ef5379cc02bd1a3b032fafc361ba/pycares-4.2.1-cp36-cp36m-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:061dd4c80fec73feb150455b159704cd51a122f20d36790033bd6375d4198579"},
-    {url = "https://files.pythonhosted.org/packages/32/55/e86ffd38be82c4b4ce4b3d82e01c1e8db7ec259fc6303eb98df5eb5177da/pycares-4.2.1-cp310-cp310-win32.whl", hash = "sha256:1f37f762414680063b4dfec5be809a84f74cd8e203d939aaf3ba9c807a9e7013"},
-    {url = "https://files.pythonhosted.org/packages/36/5e/ba26c3a6b36098d038e2a9b78105489e591491d9333e97791f2fe7fae6c5/pycares-4.2.1-cp36-cp36m-manylinux_2_5_x86_64.manylinux1_x86_64.manylinux_2_12_x86_64.manylinux2010_x86_64.whl", hash = "sha256:99e00e397d07a79c9f43e4303e67f4f97bcabd013bda0d8f2d430509b7aef8a0"},
-    {url = "https://files.pythonhosted.org/packages/37/16/b715124378007f815711a0f3ca8e79681f6e18205dbeff9d522763996286/pycares-4.2.1-cp37-cp37m-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:d2e8ec4c8e07c986b70a3cc8f5b297c53b08ac755e5b9797512002a466e2de86"},
-    {url = "https://files.pythonhosted.org/packages/40/09/93e8737c40963dbd6204be1c59322977d51b6980f85e130be2f91085258a/pycares-4.2.1-cp38-cp38-manylinux_2_5_i686.manylinux1_i686.manylinux_2_12_i686.manylinux2010_i686.whl", hash = "sha256:4ee625d7571039038bca51ae049b047cbfcfc024b302aae6cc53d5d9aa8648a8"},
-    {url = "https://files.pythonhosted.org/packages/55/5e/a40d20e6e8e56480f5d065023a51a8062a99db1989adbcbfe5a40c9bcf4f/pycares-4.2.1-cp38-cp38-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:15dd5cf21bc73ad539e8aabf7afe370d1df8af7bc6944cd7298f3bfef0c1a27c"},
-    {url = "https://files.pythonhosted.org/packages/56/ad/209726938d49687878d5f9f92b256a08fb3fdcbd4102864bae729dc143ab/pycares-4.2.1-cp38-cp38-macosx_10_9_x86_64.whl", hash = "sha256:66b5390a4885a578e687d3f2683689c35e1d4573f4d0ecf217431f7bb55c49a0"},
-    {url = "https://files.pythonhosted.org/packages/5c/1a/a87c3df27137553323234571aa526d7d31dfea33cc127bf53fef37a278c6/pycares-4.2.1-cp310-cp310-manylinux_2_5_i686.manylinux1_i686.manylinux_2_12_i686.manylinux2010_i686.whl", hash = "sha256:3b78bdee2f2f1351d5fccc2d1b667aea2d15a55d74d52cb9fd5bea8b5e74c4dc"},
-    {url = "https://files.pythonhosted.org/packages/6e/65/55e56f90c73432c17514c60155effb1c5df03ee9c641c593580c205ab355/pycares-4.2.1-cp36-cp36m-manylinux_2_5_i686.manylinux1_i686.manylinux_2_12_i686.manylinux2010_i686.whl", hash = "sha256:a521d7f54f3e52ded4d34c306ba05cfe9eb5aaa2e5aaf83c96564b9369495588"},
-    {url = "https://files.pythonhosted.org/packages/6e/f8/b3242ba96260f456b9b5d4fa33f98539d86b3590b8fffe71e52a48608058/pycares-4.2.1-cp36-cp36m-win32.whl", hash = "sha256:d9cd826d8e0c270059450709bff994bfeb072f79d82fd3f11c701690ff65d0e7"},
-    {url = "https://files.pythonhosted.org/packages/6f/18/102ab660065ef27328b20f42aa6751ed749fb06ef9ede589321e4ac3137f/pycares-4.2.1-cp39-cp39-win32.whl", hash = "sha256:8bd6ed3ad3a5358a635c1acf5d0f46be9afb095772b84427ff22283d2f31db1b"},
-    {url = "https://files.pythonhosted.org/packages/78/97/320bbdf4c9ff6e78d566b19ef8c069fbdcfa6f1523055e4f3e3a708a4d00/pycares-4.2.1-cp36-cp36m-macosx_10_9_x86_64.whl", hash = "sha256:2fd53eb5b441c4f6f9c78d7900e05883e9998b34a14b804be4fc4c6f9fea89f3"},
-    {url = "https://files.pythonhosted.org/packages/83/1b/4dc7359b17e1641dd449a7d007a34eadc98b20d5fecf7e7152c3b98c80a1/pycares-4.2.1-cp37-cp37m-manylinux_2_5_i686.manylinux1_i686.manylinux_2_12_i686.manylinux2010_i686.whl", hash = "sha256:5333b51ef4ff3e8973b4a1b57cad5ada13e15552445ee3cd74bd77407dec9d44"},
-    {url = "https://files.pythonhosted.org/packages/99/da/d3d20bc7bd5baadeea04ee84db16f1f07557138c313bd6200e1cffab5bee/pycares-4.2.1.tar.gz", hash = "sha256:735b4f75fd0f595c4e9184da18cd87737f46bc81a64ea41f4edce2b6b68d46d2"},
-    {url = "https://files.pythonhosted.org/packages/a2/9f/85c210e6b4eedc8f72a8bf7f9e6534b6a81a8f115f4991223b6aa9a90936/pycares-4.2.1-cp38-cp38-win32.whl", hash = "sha256:e4dc37f732f7110ca6368e0128cbbd0a54f5211515a061b2add64da2ddb8e5ca"},
-    {url = "https://files.pythonhosted.org/packages/a2/e5/df01c5d744db5a5e7db45f47341f6621ca1c5a1d494eea1158397fae3f3d/pycares-4.2.1-cp37-cp37m-macosx_10_9_x86_64.whl", hash = "sha256:e75cbd4d3b3d9b02bba6e170846e39893a825e7a5fb1b96728fc6d7b964f8945"},
-    {url = "https://files.pythonhosted.org/packages/b2/19/ea054b8385957070847ded632d368c8d146a7d4a3c06e2f48593ea6ed63c/pycares-4.2.1-cp37-cp37m-win_amd64.whl", hash = "sha256:7a901776163a04de5d67c42bd63a287cff9cb05fc041668ad1681fe3daa36445"},
-    {url = "https://files.pythonhosted.org/packages/b2/39/dde3b53056c4255bec4d30310965e5e549216d03c399cab6851ac86dcef3/pycares-4.2.1-cp36-cp36m-win_amd64.whl", hash = "sha256:f8e6942965465ca98e212376c4afb9aec501d8129054929744b2f4a487c8c14b"},
-    {url = "https://files.pythonhosted.org/packages/c8/52/ca6c5a05455350dfa1b2e1020218e8197c50d81550bc308543bd532a7674/pycares-4.2.1-cp310-cp310-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:b03f69df69f0ab3bfb8dbe54444afddff6ff9389561a08aade96b4f91207a655"},
-    {url = "https://files.pythonhosted.org/packages/c9/cf/e72a81a504e33d2baac021a756b93767dfc1042e663806bd813523bfae0f/pycares-4.2.1-cp39-cp39-manylinux_2_5_i686.manylinux1_i686.manylinux_2_12_i686.manylinux2010_i686.whl", hash = "sha256:c8a46839da642b281ac5f56d3c6336528e128b3c41eab9c5330d250f22325e9d"},
-    {url = "https://files.pythonhosted.org/packages/c9/f7/905f7ea4492e9f3063b66056d29870338bd2a3db830f8e453082318a1c26/pycares-4.2.1-cp310-cp310-macosx_10_9_x86_64.whl", hash = "sha256:d83f193563b42360528167705b1c7bb91e2a09f990b98e3d6378835b72cd5c96"},
-    {url = "https://files.pythonhosted.org/packages/d1/b4/7230e92658d0623b78fdc48610ab04cb30b93b508b3dcb9493c98dafbda6/pycares-4.2.1-cp310-cp310-win_amd64.whl", hash = "sha256:1a9506d496efeb809a1b63647cb2f3f33c67fcf62bf80a2359af692fef2c1755"},
-    {url = "https://files.pythonhosted.org/packages/d9/e5/84fed3f4f01da7f97ac1a1bdd1360005b3154a42349efc37c104c412d876/pycares-4.2.1-cp39-cp39-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:e9dbfcacbde6c21380c412c13d53ea44b257dea3f7b9d80be2c873bb20e21fee"},
-    {url = "https://files.pythonhosted.org/packages/db/9c/f4f66f16ccda15ffa33d197f7df7b225b0741dd4b1879f541a8a1ea311ab/pycares-4.2.1-cp37-cp37m-win32.whl", hash = "sha256:e7a95763cdc20cf9ec357066e656ea30b8de6b03de6175cbb50890e22aa01868"},
-    {url = "https://files.pythonhosted.org/packages/e3/41/545f1588487b7d2826f154cd9ffc4af225e60f56d5a4fab43b59aef27318/pycares-4.2.1-cp39-cp39-manylinux_2_5_x86_64.manylinux1_x86_64.manylinux_2_12_x86_64.manylinux2010_x86_64.whl", hash = "sha256:9b05c2cec644a6c66b55bcf6c24d4dfdaf2f7205b16e5c4ceee31db104fac958"},
-    {url = "https://files.pythonhosted.org/packages/e8/12/bc86e6c5a3da7441f61959031c708e18f2e3dbcff59399a346cd2ccda6c6/pycares-4.2.1-cp38-cp38-win_amd64.whl", hash = "sha256:3636fccf643c5192c34ee0183c514a2d09419e3a76ca2717cef626638027cb21"},
-    {url = "https://files.pythonhosted.org/packages/e9/7b/34741f784f6c4813766898c4476042ffc315a1c55f4c872699db7a6b0577/pycares-4.2.1-cp310-cp310-manylinux_2_5_x86_64.manylinux1_x86_64.manylinux_2_12_x86_64.manylinux2010_x86_64.whl", hash = "sha256:f05223de13467bb26f9a1594a1799ce2d08ad8ea241489fecd9d8ed3bbbfc672"},
-    {url = "https://files.pythonhosted.org/packages/f9/9e/52d081689169a74c3a53b07fcf79210d858f58ce5cb9d3ac171ce9673e9a/pycares-4.2.1-cp38-cp38-manylinux_2_5_x86_64.manylinux1_x86_64.manylinux_2_12_x86_64.manylinux2010_x86_64.whl", hash = "sha256:396ee487178e9de06ca4122a35a157474db3ce0a0db6038a31c831ebb9863315"},
+"pycares 4.2.2" = [
+    {url = "https://files.pythonhosted.org/packages/02/9e/832224344c26b075dab00b234fe53b893a4e652f415747ed214f7ea7dd59/pycares-4.2.2-cp39-cp39-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:075d4bdde10590a2d0456eab20028aab997207e45469d30dd01a4a65caa7f8da"},
+    {url = "https://files.pythonhosted.org/packages/07/e8/7d7c2deb9186f03003922b2e4c7e352c5964deac4f30bef02446ef756e01/pycares-4.2.2-cp39-cp39-manylinux_2_5_i686.manylinux1_i686.manylinux_2_17_i686.manylinux2014_i686.whl", hash = "sha256:55d39f2c38d1285d1ae248b9d2d965b161dcf51a4b6eacf97ff056da6f09dd30"},
+    {url = "https://files.pythonhosted.org/packages/15/57/4e6bb7998448909614a65707491053d8e3721528ba195f0fc00a309acbbc/pycares-4.2.2-cp37-cp37m-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:cc045040c094068d5de28e61a6fd0babe8522e8f61829839b893f7aff928173b"},
+    {url = "https://files.pythonhosted.org/packages/16/7e/552b4b423d609423506da613d32291cafb79b75d2e77457ff442ba3752fb/pycares-4.2.2-cp310-cp310-manylinux_2_5_i686.manylinux1_i686.manylinux_2_17_i686.manylinux2014_i686.whl", hash = "sha256:e4a01ba75e8a2947fc0b954850f8db9d52166634a206056febef2f833c8cfa1e"},
+    {url = "https://files.pythonhosted.org/packages/17/8f/baf6ddbfb9523008c8cff945f1178079fb51c10c65eaab7e3654db59d27b/pycares-4.2.2-cp310-cp310-win_amd64.whl", hash = "sha256:bcfcafbb376376c9cca6d37a8497dfd6dbd82333bf37627067b34dcaf5039612"},
+    {url = "https://files.pythonhosted.org/packages/1f/b7/dbdeb0f5ea92860c3280c730fa4afd45242c43be623246a53a63c83d3fd3/pycares-4.2.2-cp310-cp310-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:05e029e594c27a0066cdb89dfc5bba28ba94e2b27b0ca7aceb94f9aea06812cd"},
+    {url = "https://files.pythonhosted.org/packages/23/2e/e847cb539923b4dcf9e541a64f016460b6b26cfe58fdd7de5a9e8f07009e/pycares-4.2.2-cp38-cp38-macosx_10_9_universal2.whl", hash = "sha256:e8c0a7e0f9371c47cf028e2389f11385e906ba2797900419509adfa86587a2ac"},
+    {url = "https://files.pythonhosted.org/packages/24/53/5ce51ef8282b895b1dfe41c6526795069e0eb24587b4b00d43a680eacfd6/pycares-4.2.2-cp38-cp38-win32.whl", hash = "sha256:f6b5360e2278fae1e79479a4b56198fc7faf46ab350da18756c4de789835dbcd"},
+    {url = "https://files.pythonhosted.org/packages/26/32/b8af335540f65bc944ac3fb50b1bdb8bd149483041c9e1720777c6ecc7c3/pycares-4.2.2-cp310-cp310-musllinux_1_1_i686.whl", hash = "sha256:a5a28f1d041aa2102bd2512e7361671e4ef46bc927e95b6932ed95cc45273480"},
+    {url = "https://files.pythonhosted.org/packages/2d/61/8bec7e9b4c9a23cf6c4fc5d476d7320f817076957a07089fa4f77b48b47a/pycares-4.2.2-cp38-cp38-macosx_10_9_x86_64.whl", hash = "sha256:0fb3944af9492cfde6e1167780c9b8a701a56cf7d3fb29086cfb906b8261648f"},
+    {url = "https://files.pythonhosted.org/packages/2e/ff/60dc1af42d1d47616d36e90228dd38869b1a2c50838e09f274ce53a5bd4f/pycares-4.2.2-cp310-cp310-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:0eb203ceedcf7f9865ed3abb6128dfbb3498c5e76342e3c820c4274cc0c8e873"},
+    {url = "https://files.pythonhosted.org/packages/2f/0d/524becfd1c9acf9308951338b491e5f3197e6da5cd4ed074aac667b64068/pycares-4.2.2-cp38-cp38-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:46f58398bd9fa99cc2dd79f7fecddc85837ccb452d673168037ea603b15aa11b"},
+    {url = "https://files.pythonhosted.org/packages/37/2f/e31a7b90a6d3c8c20b9867239e29740b0fd6c713805eaa66afdc57af21a1/pycares-4.2.2-cp38-cp38-musllinux_1_1_x86_64.whl", hash = "sha256:5e2af8ca3bc49894a87d2b5629b993c22b0e602ecb7fd2fad660ebb9be584829"},
+    {url = "https://files.pythonhosted.org/packages/39/ca/1721e9c28ed45324201bae86b519a900a5233ce098340e3ad27bed0cda54/pycares-4.2.2-cp36-cp36m-manylinux_2_5_i686.manylinux1_i686.manylinux_2_17_i686.manylinux2014_i686.whl", hash = "sha256:241155687db7b45cb4ef84a18755ebc78c3ad624fd2578b48ea52ac16a4c8d9f"},
+    {url = "https://files.pythonhosted.org/packages/3c/fd/5c683dfdcf814565506a4675f84a793f19ca98eebd7904046b5a35b8da77/pycares-4.2.2-cp38-cp38-musllinux_1_1_i686.whl", hash = "sha256:3e4519bc51b744331c968eef0bd0071ca9c3e5863b8b8c1d99540ab8bfb04235"},
+    {url = "https://files.pythonhosted.org/packages/44/f8/92480905d8d536551215d69be44a099f0392424dae92abedfe62acbadeca/pycares-4.2.2-cp39-cp39-macosx_10_9_universal2.whl", hash = "sha256:9155e95cbe26b4b57ca691e9d8bfb5a002c7ce14ac02ddfcfe7849d4d349badb"},
+    {url = "https://files.pythonhosted.org/packages/50/0f/0279c1a7ac82201b665ee483390b313d958b28a26bea516b9301f73be57b/pycares-4.2.2-cp310-cp310-win32.whl", hash = "sha256:f8b76c13275b319b850e28bb9b3f5815de7521b1e0a581453d1acf10011bafef"},
+    {url = "https://files.pythonhosted.org/packages/58/cd/09d09f3ccbb98fdd4f542765aaeaee99d741cc9d367941e288ff5f75b7c0/pycares-4.2.2-cp37-cp37m-win_amd64.whl", hash = "sha256:90f374fae2af5eb728841b4c2a0c8038a6889ba2a5a421e4c4e4e0f15bcc5912"},
+    {url = "https://files.pythonhosted.org/packages/5f/71/81d0536d35043b282debb0493063f1eb2852623f6d08d96bc69b2f9dd6f4/pycares-4.2.2-cp38-cp38-musllinux_1_1_aarch64.whl", hash = "sha256:6cbd4df536d2c32d2d74b854db25f1d15cc61cdd182b03206afbd7ccbe7b8f11"},
+    {url = "https://files.pythonhosted.org/packages/6c/be/2cd1fb4a94b9d61fadc1d94de580e5c82210623148b1a403b632eb729cd8/pycares-4.2.2-cp37-cp37m-macosx_10_9_x86_64.whl", hash = "sha256:9a2053b34163d13d6d135248c65e71cefce3f25b3611677a1428ec7a57bae856"},
+    {url = "https://files.pythonhosted.org/packages/6e/5e/a0d5cafaaf20e437faaec6ff88ed37adf3bdf22f333c7f3cbeea2911dff2/pycares-4.2.2-cp36-cp36m-win32.whl", hash = "sha256:6a5af6443a1cefb36ddca47af37e29cae94a734c6c7cea3eb94e5de5cc2a4f1a"},
+    {url = "https://files.pythonhosted.org/packages/70/75/aa36b9b676f9bcd7ba58d17ba4a03297ff651cfd363f243ca88b7b67a4e5/pycares-4.2.2-cp37-cp37m-musllinux_1_1_x86_64.whl", hash = "sha256:47c6e18bbe6f2f4ce42fbdfa4ab2602268590f76110f06af60d02f964b72fada"},
+    {url = "https://files.pythonhosted.org/packages/7b/a1/8294570ae0421a59d16a6c437d6a9c884582e98c6a25bb9e3069a5da1cad/pycares-4.2.2-cp37-cp37m-win32.whl", hash = "sha256:a2c7fb5d3cb633e3f23344194da9b5caa54eb40da34dbe4465f0ebcede2e1e1a"},
+    {url = "https://files.pythonhosted.org/packages/7d/53/0fba9539e4029b7a8545558b0b25f423d8e63354aff2cf01d00b5ac29a80/pycares-4.2.2-cp37-cp37m-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:8064eaae5084e5155008b8f9d089055a432ff2115960273fc570f55dccedf666"},
+    {url = "https://files.pythonhosted.org/packages/84/d7/dff281b6b4882d6a036eeb795defdd19c0656df7e1eccdda011bb76fe5a3/pycares-4.2.2-cp38-cp38-manylinux_2_5_i686.manylinux1_i686.manylinux_2_17_i686.manylinux2014_i686.whl", hash = "sha256:47eae9809826cea5c0eb08eec9da584dd6330e51c075c2f6963ca2067555cd07"},
+    {url = "https://files.pythonhosted.org/packages/86/27/33c92a9643f090d24d1af8e478180db1a13ed7458c61f527543ffc5ae4e5/pycares-4.2.2-cp38-cp38-win_amd64.whl", hash = "sha256:4304e5f0c10281abcee3c2547140a6b280c70866f2828956c9bcb2de6cffa211"},
+    {url = "https://files.pythonhosted.org/packages/86/c6/f2f40c679c3f15629b5860e06106bbe82d52a16266eccfbf983855304814/pycares-4.2.2-cp36-cp36m-macosx_10_9_x86_64.whl", hash = "sha256:ae5accd693c6910bbd1a99d1f4551a9e99decd65d792a80f10c27b8fcc32b497"},
+    {url = "https://files.pythonhosted.org/packages/8a/76/a063c0ff3b7b51d43b8aa914254abfd616c70d475e2a66d7e3e7cb6df45d/pycares-4.2.2-cp310-cp310-musllinux_1_1_aarch64.whl", hash = "sha256:064543e222e3587a92bccae704fcc5f4ce1ba1ce66aac96483c9cf504d554a67"},
+    {url = "https://files.pythonhosted.org/packages/8b/c3/ea9fac35e48a308250d35b6c95a0f637e23a4a5c07d7c6ad32c0474d3f14/pycares-4.2.2-cp37-cp37m-musllinux_1_1_aarch64.whl", hash = "sha256:512fb2c04c28e0e5a7de0b61624ab9c15d2df52db113f63a0aba6c6f1174b92f"},
+    {url = "https://files.pythonhosted.org/packages/8c/80/63fa132138203c18fc953db3835ca2e4c20454df8fb2ac109bc9afa1b796/pycares-4.2.2-cp37-cp37m-musllinux_1_1_i686.whl", hash = "sha256:0eb374525c6231920509612f197ca47bdaa6ec9a0728aa199ba536dc0c25bb55"},
+    {url = "https://files.pythonhosted.org/packages/8e/f2/0b1b6eda0e42028165a457d392076a0f09b065479eef35cdb18510b1f7a9/pycares-4.2.2-cp39-cp39-musllinux_1_1_i686.whl", hash = "sha256:72184b1510866c9bc97a6daca7d8218a6954c4a78640197f0840e604ba1182f9"},
+    {url = "https://files.pythonhosted.org/packages/90/5a/c105954b0cabef68dd84f89b703c5a339fd557f638ddc07a28c069b9637a/pycares-4.2.2-cp37-cp37m-manylinux_2_5_i686.manylinux1_i686.manylinux_2_17_i686.manylinux2014_i686.whl", hash = "sha256:135a356d52773f02d7babd2b38ad64493418363274972cc786fdce847875ca03"},
+    {url = "https://files.pythonhosted.org/packages/93/88/35071f50ac3f421b58e28138e8ef1c401baba859054ec6ecc454f879ddee/pycares-4.2.2-cp36-cp36m-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:2bc61edb98aff9cb4b2e07c25383100b81459a676ca0b0bd5fe77226eb1f850e"},
+    {url = "https://files.pythonhosted.org/packages/a2/f2/55120d86c9ce4fba669179166d53e7e1a3bbb1e194b7d2660f4acc7970e6/pycares-4.2.2-cp36-cp36m-musllinux_1_1_x86_64.whl", hash = "sha256:6c411610be8de17cd5257845ebba5104b8e6356c62e66768728985a2ac0e9d1c"},
+    {url = "https://files.pythonhosted.org/packages/a9/75/5ddefed8e41396d9fb206354d6b1dfd2575d043b690fc69d03bc3487781f/pycares-4.2.2-cp36-cp36m-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:8f1901b309cb5cf7ade5822d74b904f55c49369e4ff9328818e554d4c34b4714"},
+    {url = "https://files.pythonhosted.org/packages/ac/a3/21594384c2398420dd7f6e8656aeb5a2c15128ddf2b85ef5f4403342e18d/pycares-4.2.2.tar.gz", hash = "sha256:e1f57a8004370080694bd6fb969a1ffc9171a59c6824d54f791c1b2e4d298385"},
+    {url = "https://files.pythonhosted.org/packages/ae/d7/46dd9618fcd4d215db157e5d76660da943606a2cca76b2d146f4cfb901f2/pycares-4.2.2-cp310-cp310-macosx_10_9_universal2.whl", hash = "sha256:5dc6418e87729105d93162155793002b3fa95490e2f2df33afec08b0b0d44989"},
+    {url = "https://files.pythonhosted.org/packages/b9/a7/273bafe7714c216aca102bf0c2987a15461f7bb526e3b84d4dcdbba5791e/pycares-4.2.2-cp39-cp39-musllinux_1_1_x86_64.whl", hash = "sha256:02fdf5ce48b21da6eafc5cb4508d344a0d48ac1a31e8df178f7c2fb548fcbc14"},
+    {url = "https://files.pythonhosted.org/packages/bd/7d/08b205b269eec9587627db67d8a4da90eb02d67f0206b58aba1bc81fb00e/pycares-4.2.2-cp36-cp36m-musllinux_1_1_aarch64.whl", hash = "sha256:27a21184ba35fff12eec36375d5b064516a0c3401dbf66a7eded7da34c5ca282"},
+    {url = "https://files.pythonhosted.org/packages/c1/94/ad6659825a472f11f1cd3b12be903c788578ee60dd4539fa73e42e533e8b/pycares-4.2.2-cp39-cp39-win32.whl", hash = "sha256:fe8e0f8ed7fd795868bfc2211e345963174a9f4d1e2125753e1715a60441c8a0"},
+    {url = "https://files.pythonhosted.org/packages/c3/a3/0f30fa754791e46c115c67b3c160fab553ec0fa3ed6f3e26ecacdab65dcf/pycares-4.2.2-cp310-cp310-musllinux_1_1_x86_64.whl", hash = "sha256:650b16f025bd3dad6a331e63bb8c9d55994c1b5d0d289ebe03c0bc16edad114f"},
+    {url = "https://files.pythonhosted.org/packages/c7/47/2c7775baf0ff66992dcd752a23510e90bc6c21c8d28d2c55a8e3e9a27ffe/pycares-4.2.2-cp39-cp39-macosx_10_9_x86_64.whl", hash = "sha256:612a20514685a3d999dd0a99eede9da851be11171d599b211fac287eee452ff1"},
+    {url = "https://files.pythonhosted.org/packages/e3/27/246e6350f9a42ce5264dc84950afbe6d95d43a3d8477805d764aba5087ac/pycares-4.2.2-cp39-cp39-musllinux_1_1_aarch64.whl", hash = "sha256:64261640fd52910e7960f30888abeca4e6a7a91371d351ccebc70ac1625ca74e"},
+    {url = "https://files.pythonhosted.org/packages/e4/da/6246ceb8c2eab1a6f26d43770635540fcd17c91eb70e3751ae9d35eb9f76/pycares-4.2.2-cp36-cp36m-win_amd64.whl", hash = "sha256:a01ab41405dd4dd8449f9323b2dac25e1d856ef02d85c8aedea0130b65275b2a"},
+    {url = "https://files.pythonhosted.org/packages/e5/d6/c8a6fef611e91f777ecfc3fbcf73921c53ba21aff8a990c6624b5e795234/pycares-4.2.2-cp38-cp38-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:7466315e76ab0ca4dc1354f3d7cb53f6d99d365b3778d9849e52643270beb6f2"},
+    {url = "https://files.pythonhosted.org/packages/e6/9c/fb9c336cf74a335408b77fd78ca2273f148d702a8dd8fcf7eee5478da22f/pycares-4.2.2-cp39-cp39-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:7f6eebdf34477c9bfb00497f8e58a674fd22b348bd928d19d29c84e8923554e1"},
+    {url = "https://files.pythonhosted.org/packages/f3/a2/770aab9a08cbf689a3576055771842fa00eb46e3456bf99fc3f247d60640/pycares-4.2.2-cp39-cp39-win_amd64.whl", hash = "sha256:bb09c084de909206e6db1f014d4c6d662c7df04194df31f4831088d426afe8f1"},
+    {url = "https://files.pythonhosted.org/packages/f4/a8/88a9b719e8d663eae113c1b6a18391082cb4592e75de3968686fb34a1d79/pycares-4.2.2-cp36-cp36m-musllinux_1_1_i686.whl", hash = "sha256:8a376e637ecd79db62761ca40cda080b9383a07d6dedbc799dd1a31e053862d9"},
+    {url = "https://files.pythonhosted.org/packages/ff/57/0007cd8f654a12b4ccf49c19766af3ec40b7d88e42db1f1f2a6de1621e9a/pycares-4.2.2-cp310-cp310-macosx_10_9_x86_64.whl", hash = "sha256:9481ee42df7e34c9ef7b2f045e534062b980b2c971677868df9f17730b147ceb"},
 ]
 "pycparser 2.21" = [
     {url = "https://files.pythonhosted.org/packages/5e/0b/95d387f5f4433cb0f53ff7ad859bd2c6051051cebbb564f139a999ab46de/pycparser-2.21.tar.gz", hash = "sha256:e644fdec12f7872f86c58ff790da456218b10f863970249516d60a5eaca77206"},

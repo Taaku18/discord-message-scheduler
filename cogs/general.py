@@ -26,17 +26,17 @@ class General(Cog):
     def __init__(self, bot: Bot) -> None:
         self.bot = bot
 
-    @commands.hybrid_command()
+    @commands.hybrid_command(aliases=["about"])
     async def info(self, ctx: commands.Context[Bot]) -> None:
         """Shows info about me."""
         embed = discord.Embed(
             description=f"**{self.bot.user.name}** "  # type: ignore[reportOptionalMemberAccess]
             'is a "helper" bot made by Taku.\n\n'
-            "This bot is open sourced, my source code can be found "
+            "My source code can be found "
             "[here](https://github.com/Taaku18/discord-message-scheduler).",
             colour=COLOUR,
         )
-        embed.set_footer(text="Please leave a star on my GitHub repo. <3")
+        embed.set_footer(text=f"Bot version: {self.bot.version} · Please leave a star on my GitHub repo. <3")
         await ctx.send(embed=embed)
 
 

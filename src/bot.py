@@ -8,6 +8,8 @@ from __future__ import annotations
 import logging
 from typing import Any
 
+import tomli
+
 import discord
 from discord.ext import commands
 
@@ -37,6 +39,12 @@ class Bot(commands.Bot):
             activity=activity,
             help_command=HelpCmd(),
         )
+
+        with open(PYPROJECT_TOML_PATH) as f:
+            logger.info("Loading pyproject.toml to parse version.")
+            toml_dict = tomli.loads(f.read())
+        self.version: str = toml_dict["project"]["version"]
+        logger.info("[bold green]Bot version: %s[/bold green]", self.version, extra={"markup": True})
 
     async def start(self, *args: Any, **kwargs: Any) -> None:
         """
