@@ -8,6 +8,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 - Page limit should be 10 for `/schedule list`
 
+### Changed
+- Rewrote Dockerfile to use PDM
+
 ## [1.2] - 2022-08-09
 ### Added
 - Pyright static checker

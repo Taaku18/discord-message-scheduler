@@ -137,7 +137,7 @@ You will also need a Discord bot.
 2. Install Python dependencies, choose a method from below:
    1. (Recommended) Using PDM
       1. [Install PDM](https://pdm.fming.dev/latest/#recommended-installation-method) 
-      2. Run `pdm sync --clean --prod -G speed`
+      2. Run `pdm install --prod -G speed --no-lock --no-editable`
    2. Using pip
       ```sh
       python3.10 -m pip install -U pip

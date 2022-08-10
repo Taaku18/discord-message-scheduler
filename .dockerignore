@@ -2,7 +2,7 @@
 README.md
 sample_image.png
 .gitignore
-pyproject.toml
+requirements.txt
 Dockerfile
 docker-compose.yml
 
