@@ -25,7 +25,6 @@ jobs:
       - name: Build and push
         uses: docker/build-push-action@v3
         with:
-          context: .
-          platforms: linux/amd64,linux/arm64,linux/arm/v7,darwin
+          platforms: linux/amd64,linux/arm64,darwin
           push: true
           tags: taaku18/${{ steps.vars.outputs.tag }}:latest
