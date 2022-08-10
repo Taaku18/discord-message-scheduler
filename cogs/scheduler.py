@@ -420,8 +420,9 @@ def get_schedule_modal(defaults: ScheduleModal | None = None) -> Type[ScheduleMo
                     )
             except TimeInPast as e:  # time is in the past
                 logger.debug("Bad time: %s.", e.time, exc_info=e)
+                timestamp = int(e.time.timestamp())
                 embed = discord.Embed(
-                    description=f"The time you inputted is in the past (<t:{int(e.time.timestamp())}>). "
+                    description=f"The time you inputted is in the past <t:{timestamp}> (<t:{timestamp}:R>). "
                     f"Double check the time is valid or try one of the formats below.",
                     colour=COLOUR,
                 )
@@ -768,7 +769,10 @@ class ScheduleListView(discord.ui.View):
 
         description = ""  # format the schedule description, limit 2000 character
         for schedule in schedules:
-            description += f"**ID: {schedule.id}** <t:{schedule.next_event_time}>"
+            timestamp = int(schedule.next_event_time)
+            description += (
+                f"**ID: {schedule.id}** <t:{timestamp}> (<t:{timestamp}:R>)"
+            )
             if self.channel is None:
                 description += f" <#{schedule.channel_id}>"
 
@@ -1215,7 +1219,8 @@ class Scheduler(Cog):
         mentions = re.search(r"@(everyone|here|[!&]?[0-9]{17,20})", event.message)
         if mentions is not None:  # has mentions
             embed.add_field(name="Ping Enabled", value="Yes" if event.mention else "No", inline=True)
-        embed.add_field(name="Time", value=f"<t:{int(event.next_event_time)}>", inline=False)
+        timestamp = int(event.next_event_time)
+        embed.add_field(name="Time", value=f"<t:{timestamp}> (<t:{timestamp}:R>)", inline=False)
         return embed
 
     async def save_event(self, interaction: discord.Interaction, event: ScheduleEvent) -> None:
