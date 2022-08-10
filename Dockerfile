@@ -11,14 +11,14 @@ RUN apt-get update && \
 FROM py as build
 
 RUN apt-get update && \
-    apt-get install -y --no-install-recommends curl git
+    apt-get install -y --no-install-recommends curl git && \
+    curl -sSL https://raw.githubusercontent.com/pdm-project/pdm/main/install-pdm.py | python3 -
 
 RUN python3 -m venv $VIRTUAL_ENV
 ENV PATH="$VIRTUAL_ENV/bin:$PATH"
 
 COPY pyproject.toml pdm.lock /
-RUN curl -sSL https://raw.githubusercontent.com/pdm-project/pdm/main/install-pdm.py | python3 - && \
-    $HOME/.local/bin/pdm install --prod -G speed --no-lock --no-editable
+RUN $HOME/.local/bin/pdm install --prod -G speed --no-lock --no-editable
 
 FROM py
 
