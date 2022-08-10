@@ -152,6 +152,31 @@ class ScheduleError(ValueError):
     pass
 
 
+class TooManyEvents(ScheduleError):
+    """
+    Base exception for user having too many events.
+    """
+
+    def __init__(self, limit: int) -> None:
+        self.limit = limit
+
+
+class TooManyChannelEvents(TooManyEvents):
+    """
+    The user created too many events in the channel.
+    """
+
+    pass
+
+
+class TooManyGuildEvents(TooManyEvents):
+    """
+    The user created too many events in the guild.
+    """
+
+    pass
+
+
 class TimeInPast(ScheduleError):
     """
     Raised when scheduler time is in the past.
@@ -811,6 +836,9 @@ class ScheduleListView(discord.ui.View):
 class Scheduler(Cog):
     """A general category for all my commands."""
 
+    PER_CHANNEL_LIMIT = 1  # 50
+    PER_GUILD_LIMIT = 1  # 250
+
     def __init__(self, bot: Bot) -> None:
         self.bot = bot
         self.db: aiosqlite.Connection = cast(aiosqlite.Connection, None)
@@ -1199,6 +1227,22 @@ class Scheduler(Cog):
         """
         try:
             event_db = await self._save_event(event)
+        except TooManyEvents as e:
+            # The user has too many scheduled messages in this channel/guild
+            if isinstance(e, TooManyChannelEvents):
+                embed = discord.Embed(
+                    description=f"You cannot created any more scheduled messages "
+                    f"in {event.channel.mention} (max {e.limit}).",
+                    colour=COLOUR,
+                )
+            else:
+                embed = discord.Embed(
+                    description=f"You cannot created any more scheduled messages "
+                    f"in this server (max {e.limit}).",
+                    colour=COLOUR,
+                )
+            await interaction.response.send_message(embed=embed, ephemeral=True)
+            return
         except Exception as e:
             # Something unexpected went wrong
             err_code = token_hex(5)
@@ -1223,6 +1267,53 @@ class Scheduler(Cog):
 
         :param event: The created ScheduleEvent object from the form.
         """
+
+        # Check is below limit TODO: Add constraints to DB
+        async with self.db.execute(
+            r"""
+            SELECT count(*)
+                FROM Scheduler
+                WHERE canceled=0
+                    AND author_id=$author_id
+                    AND guild_id=$guild_id
+                    AND channel_id=$channel_id
+        """,
+            {"author_id": event.author.id, "guild_id": event.channel.guild.id, "channel_id": event.channel.id},
+        ) as cur:
+            row = await cur.fetchone()
+        if row is None:
+            raise ValueError("Row shouldn't be None here.")
+        count_channel = row[0]
+
+        if count_channel >= self.PER_CHANNEL_LIMIT:
+            logger.info(
+                "Failed to create event, user has too many events %s/%s.", count_channel, self.PER_CHANNEL_LIMIT
+            )
+            raise TooManyChannelEvents(self.PER_CHANNEL_LIMIT)
+
+        async with self.db.execute(
+            r"""
+            SELECT count(*)
+                FROM Scheduler
+                WHERE canceled=0
+                    AND author_id=$author_id
+                    AND guild_id=$guild_id
+        """,
+            {"author_id": event.author.id, "guild_id": event.channel.guild.id},
+        ) as cur:
+            row = await cur.fetchone()
+        if row is None:
+            raise ValueError("Row shouldn't be None here.")
+        count_guild = row[0]
+
+        if count_guild >= self.PER_GUILD_LIMIT:
+            logger.info(
+                "Failed to create event, user has too many guild events %s/%s.",
+                count_channel,
+                self.PER_GUILD_LIMIT,
+            )
+            raise TooManyGuildEvents(self.PER_GUILD_LIMIT)
+
         # Inserts into database
         event_db = await self._insert_schedule(event)
 
