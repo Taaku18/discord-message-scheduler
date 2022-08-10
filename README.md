@@ -177,22 +177,25 @@ Alternatively, you can use Docker to deploy this bot.
 
 Ensure you have the latest version of [Docker](https://docs.docker.com/get-docker/) installed (v19.03.0+). You will also need the [Docker Compose Plugin](https://docs.docker.com/compose/install/compose-plugin/).
 
-> During the experimental phase, you will have to build your own image. A pre-built image will be provided later.
+> Pre-built images are provided at [taaku18/dms](https://hub.docker.com/repository/docker/taaku18/dms).
 
 1. Clone or [download](https://github.com/Taaku18/discord-message-scheduler/archive/refs/heads/main.zip) the repo
    ```sh
    git clone https://github.com/Taaku18/discord-message-scheduler.git
    ```
 2. Rename `.env.example` to `.env` and set your environment variables (<a href="#installation">see step 3 above</a>)
-3. Build the image
+3. Start the bot (this will use the pre-built image provided for `amd64` and `arm64`)
    ```sh
-   docker build -t dms:latest .
-   ```
-4. Start the bot
-   ```sh
+   docker pull taaku18/dms:stable
    docker compose up -d
    ```
-   You can stop the bot by running `docker compose down`.
+4. (Optional) If you wish to build your own image instead, replace `taaku18/dms:stable` with `dms:latest` in `docker-compose.yml`. Then run
+   ```sh
+   docker build -t dms:latest .
+   docker compose up -d
+   ```
+
+You can stop the bot by running `docker compose down`.
 
 To access your bot logs, run `docker ps`. This will show a list of containers.
 ```sh
@@ -200,6 +203,15 @@ CONTAINER ID   IMAGE            COMMAND             CREATED          STATUS     
 58e6aao4c8bd   dms:latest       "python start.py"   14 seconds ago   Up Less than a second             discord-message-scheduler
 ```
 Find the **CONTAINER ID** of the container named "discord-message-scheduler" and run `docker logs <CONTAINER ID>`.
+
+### Docker Tags
+
+- `latest` - the most recent commit on `main`
+- `stable` - the most recent published tag commit
+- `x.y.z` - version `x.y.z` tag commit
+
+The default tag is `stable`. To use a different tag, replace the "stable" of `taaku18/dms:stable` with your desired tag in `docker-compose.yml`.
+
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
@@ -212,14 +224,13 @@ Find the **CONTAINER ID** of the container named "discord-message-scheduler" and
     - [ ] Allow server staff access to these commands
 - [ ] Implement reporting interface to remove abusive scheduled messages
 - [ ] Permissions system
-- [ ] Add GitHub workflow for testing, linting, building Docker image
-- [ ] Auto generate requirements.txt from PDM using workflow
+- [x] Add GitHub workflow for testing, linting, building Docker image
+- [x] Auto generate requirements.txt from PDM using pre-commit
 - [ ] Revise pyright config, add to contributing guidelines
 
 See the [open issues](https://github.com/github_username/repo_name/issues) for a full list of proposed features (and known issues).
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
-
 
 
 <!-- CONTRIBUTING -->

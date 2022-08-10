@@ -1,6 +1,6 @@
 services:
   bot:
-    image: dms:latest
+    image: taaku18/dms:stable
     container_name: discord-message-scheduler
     env_file: .env
     dns:

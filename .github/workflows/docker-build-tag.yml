@@ -27,6 +27,8 @@ jobs:
         with:
           platforms: linux/amd64,linux/arm64
           push: true
-          tags: taaku18/dms:${{ steps.vars.outputs.tag }}
+          tags: |
+            taaku18/dms:${{ steps.vars.outputs.tag }}
+            taaku18/dms:stable
           cache-from: type=registry,ref=taaku18/dms:${{ steps.vars.outputs.tag }}
           cache-to: type=inline
