@@ -770,9 +770,7 @@ class ScheduleListView(discord.ui.View):
         description = ""  # format the schedule description, limit 2000 character
         for schedule in schedules:
             timestamp = int(schedule.next_event_time)
-            description += (
-                f"**ID: {schedule.id}** <t:{timestamp}> (<t:{timestamp}:R>)"
-            )
+            description += f"**ID: {schedule.id}** <t:{timestamp}> (<t:{timestamp}:R>)"
             if self.channel is None:
                 description += f" <#{schedule.channel_id}>"
 
@@ -1648,7 +1646,7 @@ class Scheduler(Cog):
             embed = discord.Embed(
                 description=f"Successfully deleted scheduled message with Event ID #{event_id}.", colour=COLOUR
             )
-        await ctx.reply(embed=embed, ephemeral=True)
+        await ctx.reply(embed=embed, ephemeral=ctx.interaction is not None)  # don't show for slash commands
         return
 
 
