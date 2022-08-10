@@ -184,12 +184,12 @@ Ensure you have the latest version of [Docker](https://docs.docker.com/get-docke
    git clone https://github.com/Taaku18/discord-message-scheduler.git
    ```
 2. Rename `.env.example` to `.env` and set your environment variables (<a href="#installation">see step 3 above</a>)
-3. Start the bot (this will use the pre-built image provided for `amd64` and `arm64`)
+3. Deploy your bot (this will use the pre-built image provided for `amd64` and `arm64`)
    ```sh
    docker pull taaku18/dms:stable
    docker compose up -d
    ```
-4. (Optional) If you wish to build your own image instead, replace `taaku18/dms:stable` with `dms:latest` in `docker-compose.yml`. Then run
+   If you wish to build your own image instead, replace `taaku18/dms:stable` with `dms:latest` in `docker-compose.yml`. Then run
    ```sh
    docker build -t dms:latest .
    docker compose up -d
