@@ -667,7 +667,7 @@ class ScheduleListView(discord.ui.View):
 
         if self.channel is None:
             self.raw_query = r"""
-                SELECT * 
+                SELECT *
                     FROM Scheduler
                     WHERE canceled=0
                         AND author_id=$author_id
@@ -685,9 +685,9 @@ class ScheduleListView(discord.ui.View):
             """
         else:
             self.raw_query = r"""
-                SELECT * 
+                SELECT *
                     FROM Scheduler
-                    WHERE canceled=0 
+                    WHERE canceled=0
                         AND author_id=$author_id
                         AND channel_id=$channel_id
                         AND guild_id=$guild_id
@@ -860,7 +860,7 @@ class Scheduler(Cog):
         schedules: list[SavedScheduleEvent] = []
         async with self.db.execute(
             r"""
-            SELECT * 
+            SELECT *
                 FROM Scheduler
                 WHERE canceled=0
                 ORDER BY next_event_time
@@ -951,7 +951,7 @@ class Scheduler(Cog):
 
         async with self.db.execute(
             r"""
-            ALTER TABLE Scheduler 
+            ALTER TABLE Scheduler
             ADD COLUMN mention BOOLEAN NOT NULL DEFAULT 0 CHECK (canceled IN (0, 1))
         """
         ):
@@ -967,9 +967,9 @@ class Scheduler(Cog):
         # Checks if the meta table exists
         async with self.db.execute(
             r"""
-            SELECT name 
-                FROM sqlite_master 
-                WHERE type='table' 
+            SELECT name
+                FROM sqlite_master
+                WHERE type='table'
                     AND name='Meta'
         """
         ) as cur:
@@ -992,9 +992,9 @@ class Scheduler(Cog):
             # Checks if the scheduler table exists
             async with self.db.execute(
                 r"""
-                    SELECT name 
-                        FROM sqlite_master 
-                        WHERE type='table' 
+                    SELECT name
+                        FROM sqlite_master
+                        WHERE type='table'
                             AND name='Scheduler'
                 """
             ) as cur:
@@ -1022,9 +1022,9 @@ class Scheduler(Cog):
             """
             async with self.db.execute(
                 r"""
-                    INSERT INTO Scheduler (message, guild_id, channel_id, 
+                    INSERT INTO Scheduler (message, guild_id, channel_id,
                                            author_id, next_event_time, repeat, mention)
-                        VALUES ($message, $guild_id, $channel_id, $author_id, 
+                        VALUES ($message, $guild_id, $channel_id, $author_id,
                                 $next_event_time, $repeat, $mention)
                         RETURNING *
                 """,
@@ -1101,9 +1101,9 @@ class Scheduler(Cog):
             logger.debug("Inserting %s into DB.", event)
             async with self.db.execute(
                 r"""
-                    INSERT INTO Scheduler (message, guild_id, channel_id, 
+                    INSERT INTO Scheduler (message, guild_id, channel_id,
                                            author_id, next_event_time, repeat, mention)
-                        VALUES ($message, $guild_id, $channel_id, $author_id, 
+                        VALUES ($message, $guild_id, $channel_id, $author_id,
                                 $next_event_time, $repeat, $mention)
                 """,
                 {
@@ -1118,7 +1118,7 @@ class Scheduler(Cog):
             ) as cur:
                 async with self.db.execute(
                     r"""
-                    SELECT * 
+                    SELECT *
                         FROM Scheduler
                         WHERE id=$id
                         LIMIT 1
@@ -1150,7 +1150,7 @@ class Scheduler(Cog):
 
             async with self.db.execute(
                 r"""
-                    SELECT * 
+                    SELECT *
                         FROM Scheduler
                         WHERE canceled=0
                             AND id=$id
@@ -1348,7 +1348,7 @@ class Scheduler(Cog):
         # Check if the event was canceled
         async with self.db.execute(
             r"""
-            SELECT canceled 
+            SELECT canceled
                 FROM Scheduler
                 WHERE id=$id
         """,
