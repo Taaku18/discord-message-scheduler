@@ -1,3 +1,5 @@
+name: "Build Docker images (tags)"
+
 on:
   push:
     tags:
