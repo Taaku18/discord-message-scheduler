@@ -14,7 +14,7 @@ tools = [
 
 [project]
 name = "Discord Message Scheduler"
-version = "1.2.2"
+version = "1.2.3"
 description = "A simple Discord Bot that can send scheduled messages."
 authors = [
     {name = "Taku", email = "noemail@example.com"},
