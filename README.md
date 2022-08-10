@@ -250,6 +250,9 @@ When making dependencies changes, always export the requirements to `requirement
 pdm export --pyproject --without-hashes --prod -G:all -o requirements.txt
 ```
 
+To simplify some common processes, such as linting with black and generating `requirements.txt`, we use [pre-commit](https://pre-commit.com/).
+It's recommended to install `pre-commit` by following the [quick start guide](https://pre-commit.com/#quick-start) and run `pre-commit run -a` to run the pre-commit actions.
+
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
 
