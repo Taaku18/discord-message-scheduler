@@ -157,7 +157,7 @@ dependencies = [
     "Brotli",
     "aiodns>=1.1",
     "cchardet",
-    "discord.py @ git+https://github.com/Rapptz/discord.py@d4cc8d3006bd50392e4422c12046bdfdd4a5a0d2",
+    "discord.py @ git+https://github.com/Rapptz/discord.py@d4cc8d30",
     "orjson>=3.5.4",
 ]
 
