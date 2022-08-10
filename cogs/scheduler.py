@@ -838,8 +838,8 @@ class ScheduleListView(discord.ui.View):
 class Scheduler(Cog):
     """A general category for all my commands."""
 
-    PER_CHANNEL_LIMIT = 1  # 50
-    PER_GUILD_LIMIT = 1  # 250
+    PER_CHANNEL_LIMIT = 50
+    PER_GUILD_LIMIT = 250
 
     def __init__(self, bot: Bot) -> None:
         self.bot = bot
