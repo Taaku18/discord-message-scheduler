@@ -29,7 +29,7 @@ repos:
     rev: 2.1.1
     hooks:
       - id: pdm-export
-        args: ["--pyproject", "--without-hashes", "-G:all", "-o", "requirements.txt"]
+        args: ["--pyproject", "--without-hashes", "--prod", "-G:all", "-o", "requirements.txt"]
         files: ^pyproject.toml$
 
 default_language_version:

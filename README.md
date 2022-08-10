@@ -247,7 +247,7 @@ Optionally add `-dG <group name>` (development group) or `-G <group name>` (opti
 
 When making dependencies changes, always export the requirements to `requirements.txt` with
 ```sh
-pdm export --pyproject --without-hashes -G:all -o requirements.txt
+pdm export --pyproject --without-hashes --prod -G:all -o requirements.txt
 ```
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
