@@ -3,6 +3,7 @@
 [![Stargazers][stars-shield]][stars-url]
 [![Issues][issues-shield]][issues-url]
 [![MIT License][license-shield]][license-url]
+[![pre-commit][pre-commit-shield]][pre-commit-url]
 
 
 <!-- PROJECT LOGO -->
@@ -126,7 +127,7 @@ You will also need a Discord bot.
    * Add Reactions
    * Use Slash Commands
 6. Open the link in the **Generated URL** box at the bottom to invite your bot.
-   
+
 
 ### Installation
 
@@ -136,7 +137,7 @@ You will also need a Discord bot.
    ```
 2. Install Python dependencies, choose a method from below:
    1. (Recommended) Using PDM
-      1. [Install PDM](https://pdm.fming.dev/latest/#recommended-installation-method) 
+      1. [Install PDM](https://pdm.fming.dev/latest/#recommended-installation-method)
       2. Run `pdm install --prod -G speed --no-lock --no-editable`
    2. Using pip
       ```sh
@@ -176,14 +177,14 @@ Alternatively, you can use Docker to deploy this bot.
 
 Ensure you have the latest version of [Docker](https://docs.docker.com/get-docker/) installed (v19.03.0+). You will also need the [Docker Compose Plugin](https://docs.docker.com/compose/install/compose-plugin/).
 
-> During the experimental phase, you will have to build your own image. A pre-built image will be provided later. 
+> During the experimental phase, you will have to build your own image. A pre-built image will be provided later.
 
 1. Clone or [download](https://github.com/Taaku18/discord-message-scheduler/archive/refs/heads/main.zip) the repo
    ```sh
    git clone https://github.com/Taaku18/discord-message-scheduler.git
    ```
 2. Rename `.env.example` to `.env` and set your environment variables (<a href="#installation">see step 3 above</a>)
-3. Build the image 
+3. Build the image
    ```sh
    docker build -t dms:latest .
    ```
@@ -294,8 +295,10 @@ Project Link: [https://github.com/Taaku18/discord-message-scheduler](https://git
 [issues-url]: https://github.com/Taaku18/discord-message-scheduler/issues
 [license-shield]: https://img.shields.io/github/license/Taaku18/discord-message-scheduler.svg?style=for-the-badge
 [license-url]: https://github.com/Taaku18/discord-message-scheduler/blob/master/LICENSE.txt
+[pre-commit-shield]: https://img.shields.io/badge/pre--commit-enabled-brightgreen?logo=pre-commit&style=for-the-badge
+[pre-commit-url]: https://github.com/pre-commit/pre-commit
 [product-screenshot]: sample_image.png
 [Python.org]: https://img.shields.io/badge/Python-35495E?style=for-the-badge&logo=python&logoColor=white
-[Python-url]: https://python.org 
+[Python-url]: https://python.org
 [Discord.py]: https://img.shields.io/badge/discord.py-0769AD?style=for-the-badge&logo=data:image/png;base64,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
 [Discordpy-url]: https://github.com/Rapptz/discord.py

@@ -8,6 +8,9 @@ lint = [
     "black>=22.6.0",
     "pyright>=1.1.266",
 ]
+tools = [
+    "pre-commit>=2.20.0",
+]
 
 [project]
 name = "Discord Message Scheduler"
