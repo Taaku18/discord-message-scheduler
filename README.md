@@ -45,10 +45,11 @@
       <ul>
         <li><a href="#prerequisites">Prerequisites</a></li>
         <li><a href="#installation">Installation</a></li>
+        <li><a href="#usage">Usage</a></li>
         <li><a href="#docker-experimental">Docker (experimental)</a></li>
       </ul>
     </li>
-    <li><a href="#usage">Usage</a></li>
+    <li><a href="#commands-guide">Commands Guide</a></li>
     <li><a href="#roadmap">Roadmap</a></li>
     <li><a href="#contributing">Contributing</a></li>
     <li><a href="#license">License</a></li>
@@ -215,6 +216,92 @@ The default tag is `stable`. To use a different tag, replace the "stable" of `ta
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
+
+<!-- COMMANDS GUIDE -->
+## Commands Guide
+
+This bot accepts both prefixed and slash commands.
+
+
+
+<!-- TABLE OF CONTENTS -->
+<details>
+  <summary>Table of Contents</summary>
+  <ol>
+    <li> Schedule related:
+    <ul>
+    <li><a href="#schedule-create-channel"><code>/schedule create</code></a></li>
+    <li><a href="#schedule-list-channel"><code>/schedule list</code></a></li>
+    <li><a href="#schedule-show-event-id"><code>/schedule show</code></a></li>
+    <li><a href="#schedule-delete-event-id"><code>/schedule delete</code></a></li>
+    </ul>
+    </li>
+    <li> General:
+    <ul>
+    <li><a href="#info"><code>/info</code></a></li>
+    <li><a href="#help-category-or-command"><code>=help</code></a> (only prefixed command)</li>
+    </ul>
+    </li>
+  </ol>
+</details>
+
+> The default bot prefix is `=`.
+
+`[arg]` - Optional <br /> `<arg>` - Required
+
+### `/schedule create [channel]`
+
+Creates a scheduled message. You can optionally supply a `channel` argument to specify a channel for the message.
+
+A Discord modal prompt will open, asking for the following:
+
+- `Message` - The message that the bot should send at the scheduled time.
+- `Scheduled Time` - The time to send the message, accurate to the second.
+
+  Formats:
+  - Just date: `2/24/2023` (Month/Day/Year), `December 12`, `nov 26 2023`
+  - Just time: `1:12am`, `midnight`, `13:42`, `7pm`
+  - Date and time: `02/24/23 19:31:03`
+  - Other date formats: `March 30 2023 4:10pm`
+  - Simple time: `tomorrow`, `next week`, `thursday at noon`
+  - Slightly complicated relative time: `in 1 day, 2 hours and 10 minutes`
+  - ISO 8601 format: `2023-08-11T01:59:41.981897`
+- `Timezone` - The timezone to parse your time.
+
+  Formats:
+  - Formal [TZ database name](https://en.wikipedia.org/wiki/List_of_tz_database_time_zones): `America/Los_Angeles`, `Europe/Berlin`, `Asia/Shanghai`
+  - [Time zone abbreviation](https://en.wikipedia.org/wiki/List_of_tz_database_time_zones): `GMT`, `UTC`, `CEST`, `PDT`, `EST`, `ET` (not recommended, may be inaccurate)
+  - Timezone offset: `+12:30`, `-3000`, `+0123`, `UTC+1232`, `UTC-12:32`
+- `Repeat` - The number of minutes between every repeat of the scheduled message. Set `0` to disable.
+
+### `/schedule list [channel]`
+
+Shows you a list of upcoming scheduled messages. You can optionally supply a `channel` argument to specify a channel to check for your upcoming scheduled messages.
+
+### `/schedule show <event-id>`
+
+Shows you the full details of a scheduled message. To find the `event-id`, use the [`/schedule list`](#schedule-list-channel) command.
+
+### `/schedule delete <event-id>`
+
+Deletes/un-schedules an upcoming scheduled message. To find the `event-id`, use the [`/schedule list`](#schedule-list-channel) command.
+
+### `/info`
+
+Shows info about this bot.
+
+### `=help [category-or-command]`
+
+> This command is only available as a prefixed command.
+
+Shows the help page. Optionally, set `category-or-command` to be a category or command name to view more info on the subject.
+
+Note: `[category-or-command]` is case-sensitive.
+
+
+<p align="right">(<a href="#readme-top">back to top</a>)</p>
+
+
 <!-- ROADMAP -->
 ## Roadmap
 
@@ -265,7 +352,6 @@ To simplify some common processes, such as linting with black and generating `re
 It's recommended to install `pre-commit` by following the [quick start guide](https://pre-commit.com/#quick-start) and run `pre-commit run -a` to run the pre-commit actions.
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
-
 
 
 <!-- LICENSE -->
