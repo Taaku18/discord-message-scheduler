@@ -10,20 +10,24 @@
 
 
 <p align="center">
-    <a href="https://github.com/Taaku18/discord-message-scheduler/graphs/contributors" alt="Contributors">
-        <img src="https://img.shields.io/github/contributors/Taaku18/discord-message-scheduler.svg?style=for-the-badge" /></a>
-    <a href="https://github.com/Taaku18/discord-message-scheduler/network/members" alt="Forks">
-        <img src="https://img.shields.io/github/forks/Taaku18/discord-message-scheduler.svg?style=for-the-badge" /></a>
-    <a href="https://github.com/Taaku18/discord-message-scheduler/stargazers" alt="Stars">
-        <img src="https://img.shields.io/github/stars/Taaku18/discord-message-scheduler.svg?style=for-the-badge" /></a>
-    <a href="https://github.com/Taaku18/discord-message-scheduler/issues" alt="Issues">
-        <img src="https://img.shields.io/github/issues/Taaku18/discord-message-scheduler.svg?style=for-the-badge" /></a>
-    <a href="https://github.com/Taaku18/discord-message-scheduler/blob/master/LICENSE.txt" alt="License">
-        <img src="https://img.shields.io/github/license/Taaku18/discord-message-scheduler.svg?style=for-the-badge" /></a>
-    <a href="https://github.com/pre-commit/pre-commit" alt="pre-commit">
-        <img src="https://img.shields.io/badge/pre--commit-enabled-brightgreen?logo=pre-commit&style=for-the-badge" /></a>
-    <a href="https://hub.docker.com/r/taaku18/dms/tags" alt="Docker Version">
-        <img src="https://img.shields.io/docker/v/taaku18/dms?logo=docker&style=for-the-badge" /></a>
+    <a href="https://github.com/Taaku18/discord-message-scheduler/tags">
+        <img alt="GitHub tag" src="https://img.shields.io/github/v/tag/taaku18/discord-message-scheduler?label=release&sort=semver&style=for-the-badge" /></a>
+    <a href="https://github.com/Taaku18/discord-message-scheduler/graphs/commit-activity">
+        <img alt="GitHub commit activity" src="https://img.shields.io/github/commit-activity/m/taaku18/discord-message-scheduler?style=for-the-badge&color=red"/></a>
+    <a href="https://github.com/Taaku18/discord-message-scheduler/network/members">
+        <img alt="Forks" src="https://img.shields.io/github/forks/Taaku18/discord-message-scheduler.svg?style=for-the-badge" /></a>
+    <a href="https://github.com/Taaku18/discord-message-scheduler/stargazers">
+        <img alt="Stars" src="https://img.shields.io/github/stars/Taaku18/discord-message-scheduler.svg?style=for-the-badge&color=yellowgreen" /></a>
+    <a href="https://github.com/Taaku18/discord-message-scheduler/actions">
+        <img alt="GitHub branch checks state" src="https://img.shields.io/github/checks-status/taaku18/discord-message-scheduler/main?style=for-the-badge" /></a>
+    <a href="https://github.com/Taaku18/discord-message-scheduler/issues">
+        <img alt="Issues" src="https://img.shields.io/github/issues/Taaku18/discord-message-scheduler.svg?style=for-the-badge" /></a>
+    <a href="https://github.com/Taaku18/discord-message-scheduler/blob/master/LICENSE.txt">
+        <img alt="License" src="https://img.shields.io/github/license/Taaku18/discord-message-scheduler.svg?style=for-the-badge" /></a>
+    <a href="https://github.com/pre-commit/pre-commit">
+        <img alt="pre-commit" src="https://img.shields.io/badge/pre--commit-enabled-brightgreen?logo=pre-commit&style=for-the-badge" /></a>
+    <a href="https://hub.docker.com/r/taaku18/dms/tags">
+        <img alt="Docker hub Version" src="https://img.shields.io/docker/v/taaku18/dms?logo=docker&style=for-the-badge" /></a>
 </p>
 
   <p align="center">
