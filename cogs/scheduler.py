@@ -390,12 +390,23 @@ def get_schedule_modal(defaults: ScheduleModal | None = None) -> Type[ScheduleMo
             """
             :return: A list of acceptable time formats.
             """
-            return [
-                "- 1/30/2023 3:20am",
-                "- Jan 30 2023 3:20",
-                "- 2023-Jan-30 3h20m",
-                "- January 30th, 2023 at 03:20:00",
-            ]
+            if TIME_PARSE_METHOD == "dateutil":
+                return [
+                    "- 1/30/2023 3:20am",
+                    "- Jan 30 2023 3:20",
+                    "- 2023-Jan-30 3h20m",
+                    "- January 30th, 2023 at 03:20:00",
+                ]
+            else:
+                return [
+                    "- Just date: `2/24/2023` (Month/Day/Year), `December 12`, `nov 26 2023`",
+                    "- Just time: `1:12am`, `midnight`, `13:42`, `7pm`",
+                    "- Date and time: `02/24/23 19:31:03`",
+                    "- Other date formats: `March 30 2023 4:10pm`",
+                    "- Simple time: `tomorrow`, `next week`, `thursday at noon`",
+                    "- Slightly complicated relative time: `in 1 day, 2 hours and 10 minutes`",
+                    "- ISO 8601 format: `2023-08-11T01:59:41.981897`",
+                ]
 
         async def on_submit(self, interaction: discord.Interaction) -> None:
             """
@@ -422,7 +433,7 @@ def get_schedule_modal(defaults: ScheduleModal | None = None) -> Type[ScheduleMo
                 logger.debug("Bad time: %s.", e.time, exc_info=e)
                 timestamp = int(e.time.timestamp())
                 embed = discord.Embed(
-                    description=f"The time you inputted is in the past <t:{timestamp}> (<t:{timestamp}:R>). "
+                    description=f"The time you inputted is **in the past** <t:{timestamp}> (<t:{timestamp}:R>). "
                     f"Double check the time is valid or try one of the formats below.",
                     colour=COLOUR,
                 )
