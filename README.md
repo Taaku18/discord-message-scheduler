@@ -4,6 +4,7 @@
 [![Issues][issues-shield]][issues-url]
 [![MIT License][license-shield]][license-url]
 [![pre-commit][pre-commit-shield]][pre-commit-url]
+[![Docker Version][docker-version-shield]][docker-version-url]
 
 
 <!-- PROJECT LOGO -->
@@ -173,6 +174,10 @@ python3.10 start.py
 
 <!-- Docker setup -->
 ## Docker (experimental)
+
+[![Docker Pulls][docker-pulls-shield]][docker-pulls-url]
+[![Docker Size][docker-size-shield]][docker-size-url]
+
 
 Alternatively, you can use Docker to deploy this bot.
 
@@ -407,6 +412,12 @@ Project Link: [https://github.com/Taaku18/discord-message-scheduler](https://git
 [license-url]: https://github.com/Taaku18/discord-message-scheduler/blob/master/LICENSE.txt
 [pre-commit-shield]: https://img.shields.io/badge/pre--commit-enabled-brightgreen?logo=pre-commit&style=for-the-badge
 [pre-commit-url]: https://github.com/pre-commit/pre-commit
+[docker-version-shield]: https://img.shields.io/docker/v/taaku18/dms?logo=docker&style=for-the-badge
+[docker-version-url]: https://hub.docker.com/r/taaku18/dms/tags
+[docker-pulls-shield]: https://img.shields.io/docker/pulls/taaku18/dms?color=E78963
+[docker-pulls-url]: https://hub.docker.com/r/taaku18/dms
+[docker-size-shield]: https://img.shields.io/docker/image-size/taaku18/dms?color=6661AB
+[docker-size-url]: https://hub.docker.com/r/taaku18/dms
 [product-screenshot]: docs/demo.gif
 [Python.org]: https://img.shields.io/badge/Python-35495E?style=for-the-badge&logo=python&logoColor=white
 [Python-url]: https://python.org
