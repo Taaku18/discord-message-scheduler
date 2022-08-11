@@ -3,7 +3,7 @@
 <div align="center">
 
   <a href="https://github.com/Taaku18/discord-message-scheduler">
-    <img src="docs/logo-white.svg" alt="Logo" width="180" height="180">
+    <img src="docs/logo-black.svg" alt="Logo" width="180" height="180">
   </a>
 
 <h3 align="center">Discord Message Scheduler</h3>
