@@ -314,6 +314,7 @@ Note: `[category-or-command]` is case-sensitive.
 - [x] Add GitHub workflow for testing, linting, building Docker image
 - [x] Auto generate requirements.txt from PDM using pre-commit
 - [ ] Revise pyright config, add to contributing guidelines
+- [ ] Replace the README screenshot and add a bot logo
 
 See the [open issues](https://github.com/github_username/repo_name/issues) for a full list of proposed features (and known issues).
 
