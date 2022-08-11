@@ -233,6 +233,7 @@ This bot accepts both prefixed and slash commands.
     <li><a href="#schedule-create-channel"><code>/schedule create</code></a></li>
     <li><a href="#schedule-list-channel"><code>/schedule list</code></a></li>
     <li><a href="#schedule-show-event-id"><code>/schedule show</code></a></li>
+    <li><a href="#schedule-edit-event-id"><code>/schedule edit</code></a></li>
     <li><a href="#schedule-delete-event-id"><code>/schedule delete</code></a></li>
     </ul>
     </li>
@@ -281,6 +282,10 @@ Shows you a list of upcoming scheduled messages. You can optionally supply a `ch
 ### `/schedule show <event-id>`
 
 Shows you the full details of a scheduled message. To find the `event-id`, use the [`/schedule list`](#schedule-list-channel) command.
+
+### `/schedule edit <event-id>`
+
+Edits the contents of an upcoming scheduled message. To find the `event-id`, use the [`/schedule list`](#schedule-list-channel) command.
 
 ### `/schedule delete <event-id>`
 

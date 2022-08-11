@@ -8,6 +8,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - Added a command reference guide in README
 - Added more time format examples in scheduler
+- Added `/schedule edit <event-id>` to edit events
+- Added `=schedule unschedule` as an alias to `=schedule delete`
 
 
 ## [1.2.3] - 2022-08-10

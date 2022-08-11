@@ -10,6 +10,7 @@ import heapq
 import logging
 import re
 import warnings
+from dataclasses import dataclass
 from math import ceil
 from secrets import token_hex
 from typing import TYPE_CHECKING, NamedTuple, Type, Literal, cast, TypeAlias, Any
@@ -33,6 +34,34 @@ logger = logging.getLogger(__name__)
 DB_VERSION = 1
 TIME_PARSE_METHOD: Literal["dateparser"] | Literal["dateutil"] = "dateparser"  # options: 'dateutil', 'dateparser'
 MessageableGuildChannel: TypeAlias = discord.TextChannel | discord.VoiceChannel | discord.Thread
+
+
+class RawScheduleModalValues(NamedTuple):
+    """
+    Represents the raw values of a scheduled modal. Stores default values for editing modals.
+    """
+
+    message: str | None
+    time: str | None
+    timezone: str | None
+    repeat: str | None
+
+    @classmethod
+    def from_modal(cls, modal: ScheduleModal) -> RawScheduleModalValues:
+        return cls(modal.message.value, modal.time.value, modal.timezone.value, modal.repeat.value)
+
+    @classmethod
+    def from_edit_modal(cls, modal: ScheduleEditModal) -> RawScheduleModalValues:
+        return cls(modal.message.value, None, None, modal.repeat.value)
+
+    @classmethod
+    def from_event(cls, event: SavedScheduleEvent) -> RawScheduleModalValues:
+        return cls(
+            event.message,
+            arrow.get(event.next_event_time).isoformat(),
+            None,
+            str(event.repeat) if event.repeat else None,
+        )
 
 
 class SanitizedScheduleEvent(NamedTuple):
@@ -107,6 +136,14 @@ class SavedScheduleEvent(NamedTuple):
     canceled: bool
     mention: bool
 
+    def strip(self) -> StrippedSavedScheduleEvent:
+        """
+        Strip this event and create itself into a StrippedSavedScheduleEvent.
+
+        :return: The stripped StrippedSavedScheduleEvent.
+        """
+        return StrippedSavedScheduleEvent(self.id, self.next_event_time, self.repeat)
+
     @classmethod
     def from_row(cls, row: aiosqlite.Row) -> SavedScheduleEvent:
         """
@@ -117,27 +154,45 @@ class SavedScheduleEvent(NamedTuple):
         """
         return cls(*row)
 
-    def do_repeat(self, current_timestamp: int) -> SavedScheduleEvent:
+    def __lt__(self, other: SavedScheduleEvent) -> bool:  # type: ignore[reportIncompatibleMethodOverride]
+        """
+        Use next_event_time as the comp.
+        """
+        return self.next_event_time < other.next_event_time
+
+
+@dataclass(slots=True)
+class StrippedSavedScheduleEvent:
+    """
+    Represents a single (stripped down) scheduled message event in DB format. Used for caching.
+    """
+
+    id: int
+    next_event_time: int
+    repeat: float | int | None
+
+    @classmethod
+    def from_row(cls, row: aiosqlite.Row) -> StrippedSavedScheduleEvent:
+        """
+        Create a StrippedSavedScheduleEvent from a SQLite row.
+
+        :param row: The row fetched from the database.
+        :return: Created StrippedSavedScheduleEvent.
+        """
+        return cls(*row)
+
+    def do_repeat(self, current_timestamp: int) -> StrippedSavedScheduleEvent:
         """
         Do an iteration of repeat.
 
-        :return: New SavedScheduleEvent with updated next_event_time.
+        :return: New StrippedSavedScheduleEvent with updated next_event_time.
         """
         if self.repeat is None:
             raise ValueError("repeat cannot be None to do_repeat().")
-        return SavedScheduleEvent(
-            self.id,
-            self.message,
-            self.guild_id,
-            self.channel_id,
-            self.author_id,
-            int(current_timestamp + self.repeat * 60),
-            self.repeat,
-            self.canceled,
-            self.mention,
-        )
+        self.next_event_time = int(current_timestamp + self.repeat * 60)
+        return self
 
-    def __lt__(self, other: SavedScheduleEvent) -> bool:  # type: ignore[reportIncompatibleMethodOverride]
+    def __lt__(self, other: StrippedSavedScheduleEvent) -> bool:  # type: ignore[reportIncompatibleMethodOverride]
         """
         Use next_event_time as the comp.
         """
@@ -240,18 +295,65 @@ if TYPE_CHECKING:  # TODO: find another way to fix type checking
         async def on_submit(self, interaction: discord.Interaction) -> None:
             ...
 
+    class ScheduleEditModal(discord.ui.Modal, title="Schedule Editor"):
+        message: discord.ui.TextInput[ScheduleModal]
+        repeat: discord.ui.TextInput[ScheduleModal]
 
-def get_schedule_modal(defaults: ScheduleModal | None = None) -> Type[ScheduleModal]:
+        def __init__(
+            self, scheduler: Scheduler, channel: MessageableGuildChannel, original_event: SavedScheduleEvent
+        ) -> None:
+            self.scheduler = scheduler
+            self.channel = channel
+            self.original_event = original_event
+            super().__init__()
+
+        def sanitize_response(self, interaction: discord.Interaction) -> SanitizedScheduleEvent:
+            ...
+
+        async def on_submit(self, interaction: discord.Interaction) -> None:
+            ...
+
+
+def _parse_repeat(raw_repeat: str | None) -> float | None:
+    """
+    Validate the repeat for both schedule modals.
+
+    :param raw_repeat: The raw repeat field value.
+    :return: The sanitized repeat value.
+    """
+    if not raw_repeat:
+        repeat = None
+    else:
+        # check repeat is a number
+        try:
+            repeat = round(float(raw_repeat), 2)
+        except ValueError:
+            repeat = None
+        else:
+            # verify repeat is < year and > one hour
+            if repeat <= 0:
+                repeat = None
+            elif repeat > 60 * 24 * 365:
+                raise InvalidRepeat("Repeat cannot be longer than a year.")
+            elif repeat < (0.2 if DEBUG_MODE else 60):  # 12 seconds for debug mode, 60 min for production
+                if DEBUG_MODE:
+                    raise InvalidRepeat("Repeat cannot be less than 12 seconds (debug mode is active).")
+                else:
+                    raise InvalidRepeat("Repeat cannot be less than one hour.")
+    return repeat
+
+
+def get_schedule_modal(defaults: RawScheduleModalValues | None = None) -> Type[ScheduleModal]:
     """
     This is a class factory to create ScheduleModal with defaults.
 
-    :param defaults: A ScheduleModal object that will be used to populate default fields.
+    :param defaults: A RawScheduleModalValues object that will be used to populate default fields.
     :return: A class ScheduleModal with defaults.
     """
-    message_default = defaults and defaults.message.value
-    time_default = defaults and defaults.time.value
-    timezone_default = defaults and defaults.timezone.value or DEFAULT_TIMEZONE
-    repeat_default = defaults and defaults.repeat.value or "0"
+    message_default = cast(str | None, defaults and defaults.message)
+    time_default = cast(str | None, defaults and defaults.time)
+    timezone_default = cast(str, defaults and defaults.timezone or DEFAULT_TIMEZONE)
+    repeat_default = cast(str, defaults and defaults.repeat or "0")
 
     # noinspection PyShadowingNames
     class ScheduleModal(discord.ui.Modal, title="Schedule Creator"):
@@ -363,26 +465,7 @@ def get_schedule_modal(defaults: ScheduleModal | None = None) -> Type[ScheduleMo
                 logger.debug("Time is in the past. Time: %s, now: %s", time, now)
                 raise TimeInPast(time)
 
-            if not self.repeat.value:
-                repeat = None
-            else:
-                # check repeat is a number
-                try:
-                    repeat = round(float(self.repeat.value), 2)
-                except ValueError:
-                    repeat = None
-                else:
-                    # verify repeat is < year and > one hour
-                    if repeat <= 0:
-                        repeat = None
-                    elif repeat > 60 * 24 * 365:
-                        raise InvalidRepeat("Repeat cannot be longer than a year.")
-                    elif repeat < (0.2 if DEBUG_MODE else 60):  # 12 seconds for debug mode, 60 min for production
-                        if DEBUG_MODE:
-                            raise InvalidRepeat("Repeat cannot be less than 12 seconds (debug mode is active).")
-                        else:
-                            raise InvalidRepeat("Repeat cannot be less than one hour.")
-
+            repeat = _parse_repeat(self.repeat.value)
             return SanitizedScheduleEvent(interaction.user, self.channel, self.message.value, time, repeat)
 
         @property
@@ -485,7 +568,15 @@ def get_schedule_modal(defaults: ScheduleModal | None = None) -> Type[ScheduleMo
                         )
                         embed.add_field(name="Message", value=event.message, inline=False)
                         await interaction.response.send_message(
-                            embed=embed, view=ScheduleMentionView(self, interaction.user, event), ephemeral=True
+                            embed=embed,
+                            view=ScheduleMentionView(
+                                self.scheduler,
+                                interaction.user,
+                                self.channel,
+                                event,
+                                RawScheduleModalValues.from_modal(self),
+                            ),
+                            ephemeral=True,
                         )
                         return
 
@@ -499,7 +590,11 @@ def get_schedule_modal(defaults: ScheduleModal | None = None) -> Type[ScheduleMo
             # If failed
             embed.set_footer(text='Click the "Edit" button below to edit your form.')
             await interaction.response.send_message(
-                embed=embed, view=ScheduleEditView(self, interaction.user), ephemeral=True
+                embed=embed,
+                view=ScheduleEditView(
+                    self.scheduler, interaction.user, self.channel, RawScheduleModalValues.from_modal(self)
+                ),
+                ephemeral=True,
             )
 
     return ScheduleModal
@@ -507,6 +602,156 @@ def get_schedule_modal(defaults: ScheduleModal | None = None) -> Type[ScheduleMo
 
 # The empty ScheduleModal with no defaults
 ScheduleModal = get_schedule_modal()
+
+
+def get_schedule_edit_modal(defaults: RawScheduleModalValues | None = None) -> Type[ScheduleEditModal]:
+    """
+    This is a class factory to create ScheduleEditModal with defaults.
+
+    :param defaults: A RawScheduleModalValues object that will be used to populate default fields.
+    :return: A class ScheduleEditModal with defaults.
+    """
+    message_default = cast(str | None, defaults and defaults.message)
+    repeat_default = cast(str, defaults and defaults.repeat or "0")
+
+    # noinspection PyShadowingNames
+    class ScheduleEditModal(discord.ui.Modal, title="Schedule Editor"):
+        """
+        The scheduling modal to collect info for editing the schedule.
+        """
+
+        message: discord.ui.TextInput[ScheduleModal] = discord.ui.TextInput(
+            label="Message",
+            style=discord.TextStyle.paragraph,
+            required=True,
+            max_length=1000,
+            default=message_default,
+        )
+        repeat: discord.ui.TextInput[ScheduleModal] = discord.ui.TextInput(
+            label="Repeat every n minutes (0 to disable, min 60)",
+            required=False,
+            max_length=10,
+            default=repeat_default,
+        )
+
+        def __init__(
+            self, scheduler: Scheduler, channel: MessageableGuildChannel, original_event: SavedScheduleEvent
+        ) -> None:
+            """
+            :param scheduler: The Scheduler object.
+            :param channel: The MessageableGuildChannel for the scheduled message.
+            :param original_event: The current event before the edit.
+            """
+            self.scheduler = scheduler
+            self.channel = channel
+            self.original_event = original_event
+            super().__init__()
+
+        def sanitize_response(self, interaction: discord.Interaction) -> SanitizedScheduleEvent:
+            """
+            Sanitize the modal entries and raise appropriate errors.
+
+            :param interaction: The interaction context.
+            :raises InvalidRepeat: If repeat is longer than a year or shorter than an hour.
+            :return: The sanitized ScheduleEvent.
+            """
+
+            logger.debug("Sanitizing schedule edit event.")
+            if self.message.value is None:
+                raise ValueError("Message cannot be None here since they are non-optional.")
+
+            if not isinstance(interaction.user, discord.Member):
+                raise ValueError("interaction.user must be a Member (cannot be ran from DM).")
+
+            repeat = _parse_repeat(self.repeat.value)
+            return SanitizedScheduleEvent(
+                interaction.user,
+                self.channel,
+                self.message.value,
+                arrow.get(self.original_event.next_event_time),
+                repeat,
+            )
+
+        async def on_submit(self, interaction: discord.Interaction) -> None:
+            """
+            Callback for modal submission.
+            """
+            try:
+                event = self.sanitize_response(interaction)
+            except InvalidRepeat as e:  # repeat is invalid
+                logger.debug("Bad repeat %s.", self.repeat, exc_info=e)
+                embed = discord.Embed(description=e.reason, colour=COLOUR)
+            else:
+                # Check if the message contains a mention and both author
+                mentions = re.search(r"@(everyone|here|[!&]?[0-9]{17,20})", event.message)
+
+                if mentions is not None:
+                    logger.debug("Event has mention.")
+                    perms_author = self.channel.permissions_for(event.author)
+                    perms_bot = self.channel.permissions_for(self.channel.guild.me)
+
+                    # This is a privileged mention (@everyone, @here, @role)
+                    if mentions.group(1) in {"everyone", "here"} or mentions.group(1).startswith("&"):
+                        # Bot will need permissions to ping as well
+                        check = perms_author.mention_everyone and perms_bot.mention_everyone
+                        logger.debug(
+                            "Checking all mentions, author: %s bot: %s.",
+                            perms_author.mention_everyone,
+                            perms_bot.mention_everyone,
+                        )
+                    else:
+                        check = perms_author.mention_everyone
+                        logger.debug("Checking all mentions, author: %s.", perms_author.mention_everyone)
+
+                    if check:  # if pinging is a possibility
+                        logger.info("Sending mention approval form.")
+
+                        embed = discord.Embed(
+                            title="This scheduled message contains mentions",
+                            description="Click **Yes** if the mentions should ping "
+                            "its members, otherwise click **No**.\n\n"
+                            "Alternatively, click **Edit** to revise your message.",
+                            colour=COLOUR,
+                        )
+                        embed.add_field(name="Message", value=event.message, inline=False)
+                        await interaction.response.send_message(
+                            embed=embed,
+                            view=ScheduleMentionView(
+                                self.scheduler,
+                                interaction.user,
+                                self.channel,
+                                event,
+                                RawScheduleModalValues.from_edit_modal(self),
+                                original_event=self.original_event,
+                            ),
+                            ephemeral=True,
+                        )
+                        return
+
+                logger.info("Saving event: no mention or no perms.")
+                # Message has no mentions, or the bot or user cannot mention in this channel,
+                # so don't bother asking
+                await self.scheduler.save_event(
+                    interaction, ScheduleEvent.from_sanitized(event, False), original_event=self.original_event
+                )
+                return
+
+            logger.info("Failed to save, sending edit form.")
+            # If failed
+            embed.set_footer(text='Click the "Edit" button below to edit your form.')
+            await interaction.response.send_message(
+                embed=embed,
+                view=ScheduleEditView(
+                    self.scheduler,
+                    interaction.user,
+                    self.channel,
+                    RawScheduleModalValues.from_edit_modal(self),
+                    original_event=self.original_event,
+                ),
+                ephemeral=True,
+            )
+
+    return ScheduleEditModal
 
 
 class ScheduleView(discord.ui.View):
@@ -551,13 +796,27 @@ class ScheduleEditView(discord.ui.View):
     A single-button view to allow the user to edit the schedule modal.
     """
 
-    def __init__(self, last_schedule_modal: ScheduleModal, author: discord.User | discord.Member) -> None:
+    def __init__(
+        self,
+        scheduler: Scheduler,
+        author: discord.User | discord.Member,
+        channel: MessageableGuildChannel,
+        raw_values: RawScheduleModalValues,
+        *,
+        original_event: SavedScheduleEvent | None = None,
+    ) -> None:
         """
-        :param last_schedule_modal: The previous ScheduleModal before the retry.
+        :param scheduler: The Scheduler object.
         :param author: The user who created this interaction.
+        :param channel: The MessageableGuildChannel for the scheduled message.
+        :param raw_values: The raw values of the form data.
+        :param original_event: The original event, if provided, means edit mode is used.
         """
-        self.last_schedule_modal = last_schedule_modal
+        self.scheduler = scheduler
         self.author = author
+        self.channel = channel
+        self.raw_values = raw_values
+        self.original_event = original_event
         super().__init__()
 
     # noinspection PyUnusedLocal
@@ -570,12 +829,16 @@ class ScheduleEditView(discord.ui.View):
             logger.debug("Button clicked by a non-author.")
             return
 
-        logger.info("Creating a schedule modal from edit schedule view.")
-        await interaction.response.send_modal(
-            get_schedule_modal(self.last_schedule_modal)(
-                self.last_schedule_modal.scheduler, self.last_schedule_modal.channel
+        if self.original_event is None:
+            logger.info("Creating a schedule modal from edit schedule view.")
+            await interaction.response.send_modal(
+                get_schedule_modal(self.raw_values)(self.scheduler, self.channel)
             )
-        )
+        else:
+            logger.info("Creating a schedule edit modal from edit schedule view.")
+            await interaction.response.send_modal(
+                get_schedule_edit_modal(self.raw_values)(self.scheduler, self.channel, self.original_event)
+            )
         self.stop()
 
 
@@ -586,18 +849,28 @@ class ScheduleMentionView(discord.ui.View):
 
     def __init__(
         self,
-        last_schedule_modal: ScheduleModal,
+        scheduler: Scheduler,
         author: discord.User | discord.Member,
+        channel: MessageableGuildChannel,
         event: SanitizedScheduleEvent,
+        raw_values: RawScheduleModalValues,
+        *,
+        original_event: SavedScheduleEvent | None = None,
     ) -> None:
         """
-        :param last_schedule_modal: The previous ScheduleModal before the retry.
+        :param scheduler: The Scheduler object.
         :param author: The user who created this interaction.
+        :param channel: The MessageableGuildChannel for the scheduled message.
         :param event: The sanitized event from the last modal.
+        :param raw_values: The raw values of the form data.
+        :param original_event: The original event, if provided, means edit mode is used.
         """
-        self.last_schedule_modal = last_schedule_modal
+        self.scheduler = scheduler
         self.author = author
+        self.channel = channel
         self.event = event
+        self.raw_values = raw_values
+        self.original_event = original_event
         super().__init__()
 
     # noinspection PyUnusedLocal
@@ -612,8 +885,8 @@ class ScheduleMentionView(discord.ui.View):
 
         logger.info("Saving schedule event with mention.")
         try:
-            await self.last_schedule_modal.scheduler.save_event(
-                interaction, ScheduleEvent.from_sanitized(self.event, True)
+            await self.scheduler.save_event(
+                interaction, ScheduleEvent.from_sanitized(self.event, True), original_event=self.original_event
             )
         finally:
             self.stop()
@@ -630,8 +903,8 @@ class ScheduleMentionView(discord.ui.View):
 
         logger.info("Saving schedule event without mention.")
         try:
-            await self.last_schedule_modal.scheduler.save_event(
-                interaction, ScheduleEvent.from_sanitized(self.event, False)
+            await self.scheduler.save_event(
+                interaction, ScheduleEvent.from_sanitized(self.event, False), original_event=self.original_event
             )
         finally:
             self.stop()
@@ -646,12 +919,16 @@ class ScheduleMentionView(discord.ui.View):
             logger.debug("Button clicked by a non-author.")
             return
 
-        logger.info("Edit schedule modal from mention view.")
-        await interaction.response.send_modal(
-            get_schedule_modal(self.last_schedule_modal)(
-                self.last_schedule_modal.scheduler, self.last_schedule_modal.channel
+        if self.original_event is None:
+            logger.info("Edit schedule modal from mention view.")
+            await interaction.response.send_modal(
+                get_schedule_modal(self.raw_values)(self.scheduler, self.channel)
             )
-        )
+        else:
+            logger.info("Edit schedule edit modal from mention view.")
+            await interaction.response.send_modal(
+                get_schedule_edit_modal(self.raw_values)(self.scheduler, self.channel, self.original_event)
+            )
         self.stop()
 
 
@@ -855,7 +1132,7 @@ class Scheduler(Cog):
     def __init__(self, bot: Bot) -> None:
         self.bot = bot
         self.db: aiosqlite.Connection = cast(aiosqlite.Connection, None)
-        self.schedule_heap: list[SavedScheduleEvent] = []
+        self.schedule_heap: list[StrippedSavedScheduleEvent] = []
         self.heap_lock = asyncio.Lock()
 
     async def cog_load(self) -> None:
@@ -868,17 +1145,17 @@ class Scheduler(Cog):
 
         logger.debug("Populating schedules.")
         # Populate schedules from database
-        schedules: list[SavedScheduleEvent] = []
+        schedules: list[StrippedSavedScheduleEvent] = []
         async with self.db.execute(
             r"""
-            SELECT *
+            SELECT id, next_event_time, repeat
                 FROM Scheduler
                 WHERE canceled=0
                 ORDER BY next_event_time
         """
         ) as cur:
             async for row in cur:
-                schedules += [SavedScheduleEvent.from_row(row)]
+                schedules += [StrippedSavedScheduleEvent.from_row(row)]
 
         logger.info("Populated %d schedules.", len(schedules))
 
@@ -1057,6 +1334,45 @@ class Scheduler(Cog):
             await self.db.commit()
             return event_db
 
+        async def _edit_schedule(
+            self, event: ScheduleEvent, original_event: SavedScheduleEvent
+        ) -> SavedScheduleEvent:
+            """
+            Edit a schedule event in DB SQLite version >= 3.35.0.
+
+            When modifying this method, be sure to update the < 3.35.0 sister method as well.
+
+            :param event: The ScheduleEvent of the event.
+            :param original_event: The original SavedScheduleEvent before the edit.
+            :return: The saved SavedScheduleEvent.
+            """
+
+            async with self.db.execute(
+                r"""
+                        UPDATE Scheduler
+                            SET message=$message,
+                                channel_id=$channel_id,
+                                mention=$mention,
+                                repeat=$repeat
+                            WHERE id=$id
+                            RETURNING *
+                    """,
+                {
+                    "id": original_event.id,
+                    "message": event.message,
+                    "channel_id": event.channel.id,
+                    "mention": event.mention,
+                    "repeat": event.repeat,
+                },
+            ) as cur:
+                row = await cur.fetchone()
+                if row is None:
+                    raise ValueError("Something went wrong with SQLite, row should not be None.")
+                event_db = SavedScheduleEvent.from_row(row)
+
+            await self.db.commit()
+            return event_db
+
         async def _delete_schedule(
             self, event_id: int, author_id: int, guild_id: int
         ) -> SavedScheduleEvent | None:
@@ -1068,7 +1384,7 @@ class Scheduler(Cog):
             :param event_id: The ID of the event.
             :param author_id: The author ID of the event.
             :param guild_id: The guild ID of the event.
-            :return: The deleted saved SavedScheduleEvent.
+            :return: The deleted SavedScheduleEvent.
             """
 
             logger.debug("Deleting event ID %d.", event_id)
@@ -1143,6 +1459,51 @@ class Scheduler(Cog):
             await self.db.commit()
             return event_db
 
+        async def _edit_schedule(
+            self, event: ScheduleEvent, original_event: SavedScheduleEvent
+        ) -> SavedScheduleEvent:
+            """
+            Edit a schedule event in DB SQLite version < 3.35.0.
+
+            When modifying this method, be sure to update the >= 3.35.0 sister method as well.
+
+            :param event: The ScheduleEvent of the event.
+            :param original_event: The original SavedScheduleEvent before the edit.
+            :return: The saved SavedScheduleEvent.
+            """
+            async with self.db.execute(
+                r"""
+                            UPDATE Scheduler
+                                SET message=$message,
+                                    channel_id=$channel_id,
+                                    mention=$mention,
+                                    repeat=$repeat
+                                WHERE id=$id
+                        """,
+                {
+                    "id": original_event.id,
+                    "message": event.message,
+                    "channel_id": event.channel.id,
+                    "mention": event.mention,
+                    "repeat": event.repeat,
+                },
+            ) as cur:
+                async with self.db.execute(
+                    r"""
+                        SELECT *
+                            FROM Scheduler
+                            WHERE id=$id
+                            LIMIT 1
+                    """,
+                    {"id": cur.lastrowid},
+                ) as cur2:
+                    row = await cur2.fetchone()
+                    if row is None:
+                        raise ValueError("Something went wrong with SQLite, row should not be None.")
+                    event_db = SavedScheduleEvent.from_row(row)
+            await self.db.commit()
+            return event_db
+
         async def _delete_schedule(
             self, event_id: int, author_id: int, guild_id: int
         ) -> SavedScheduleEvent | None:
@@ -1154,7 +1515,7 @@ class Scheduler(Cog):
             :param event_id: The ID of the event.
             :param author_id: The author ID of the event.
             :param guild_id: The guild ID of the event.
-            :return: The deleted saved SavedScheduleEvent.
+            :return: The deleted SavedScheduleEvent.
             """
 
             logger.debug("Deleting event ID %d.", event_id)
@@ -1232,15 +1593,25 @@ class Scheduler(Cog):
         embed.add_field(name="Time", value=f"<t:{timestamp}> (<t:{timestamp}:R>)", inline=False)
         return embed
 
-    async def save_event(self, interaction: discord.Interaction, event: ScheduleEvent) -> None:
+    async def save_event(
+        self,
+        interaction: discord.Interaction,
+        event: ScheduleEvent,
+        *,
+        original_event: SavedScheduleEvent | None = None,
+    ) -> None:
         """
         Saves the ScheduleEvent into database and adds to the event heap.
 
         :param interaction: The interaction context.
         :param event: The ScheduleEvent to save.
+        :param original_event: The original event, setting this indicates you're editing.
         """
+
+        editing = original_event is not None
+
         try:
-            event_db = await self._save_event(event)
+            event_db = await self._save_event(event, editing=editing, original_event=original_event)
         except TooManyEvents as e:
             # The user has too many scheduled messages in this channel/guild
             if isinstance(e, TooManyChannelEvents):
@@ -1270,17 +1641,28 @@ class Scheduler(Cog):
             return
 
         embed = self._make_info_embed(event_db)
-        embed.title = f"Scheduled Message Created (Event ID #{event_db.id})"
-        embed.set_footer(text=f"{event.author} has created a scheduled message.")
+        if not editing:
+            embed.title = f"Scheduled Message Created (Event ID #{event_db.id})"
+            embed.set_footer(text=f"{event.author} has created a scheduled message.")
+        else:
+            embed.title = f"Scheduled Message Edited (Event ID #{event_db.id})"
+            embed.set_footer(text=f"{event.author} has edited a scheduled message.")
         await interaction.response.send_message(embed=embed)
         return
 
-    async def _save_event(self, event: ScheduleEvent) -> SavedScheduleEvent:
+    async def _save_event(
+        self, event: ScheduleEvent, editing: bool, original_event: SavedScheduleEvent | None
+    ) -> SavedScheduleEvent:
         """
         Saves the ScheduleEvent into database and adds to the event heap.
 
         :param event: The created ScheduleEvent object from the form.
+        :param editing: Whether this save is to an edit or new.
+        :param original_event: The original event if editing is True.
         """
+
+        if editing and original_event is None:
+            raise ValueError("original_event must not be None when editing is True.")
 
         # Check is below limit TODO: Add constraints to DB
         async with self.db.execute(
@@ -1304,6 +1686,26 @@ class Scheduler(Cog):
                 "Failed to create event, user has too many events %s/%s.", count_channel, self.PER_CHANNEL_LIMIT
             )
             raise TooManyChannelEvents(self.PER_CHANNEL_LIMIT)
+
+        if editing:
+            if original_event is None:  # need this check again to make linter happy
+                raise ValueError("original_event must not be None when editing is True.")
+
+            # The rest of this function don't need to be run, editing the SQL here then return
+            event_db = await self._edit_schedule(event, original_event)
+
+            logger.info("Edited schedule in database with ID %d.", original_event.id)
+            logger.info(
+                "Message (preview): %s\nGuild: %s\nChannel: %s\nAuthor: %s\nRepeat: %s\nMention: %s\nTime: %s",
+                event.message[:80],
+                event.channel.guild,
+                event.channel,
+                event.author,
+                event.repeat,
+                event.mention,
+                event.time,
+            )
+            return event_db
 
         async with self.db.execute(
             r"""
@@ -1345,34 +1747,37 @@ class Scheduler(Cog):
 
         # Add the event into the schedule heap
         async with self.heap_lock:
-            heapq.heappush(self.schedule_heap, event_db)
+            heapq.heappush(self.schedule_heap, event_db.strip())
         return event_db
 
-    async def send_scheduled_message(self, event: SavedScheduleEvent) -> bool:
+    async def send_scheduled_message(self, stripped_event: StrippedSavedScheduleEvent) -> bool:
         """
         Sends a scheduled event message.
 
-        :param event: A SavedScheduleEvent fetched from the database.
+        :param stripped_event: The stripped event stored within the cache.
         :return: True if send was successful, False otherwise.
         """
 
         # Check if the event was canceled
         async with self.db.execute(
             r"""
-            SELECT canceled
+            SELECT *
                 FROM Scheduler
                 WHERE id=$id
         """,
-            {"id": event.id},
+            {"id": stripped_event.id},
         ) as cur:
             row = await cur.fetchone()
             if row is None:
                 logger.error("Row should not be None, why was this deleted?")
                 return False
 
-            if row[0]:  # if canceled is true
-                logger.warning("Event with ID %d was canceled.", event.id)
-                return False
+        event = SavedScheduleEvent.from_row(row)
+        stripped_event.repeat = event.repeat  # sync the stripped repeat status
+
+        if event.canceled:  # if canceled is true
+            logger.warning("Event with ID %d was canceled.", event.id)
+            return False
 
         # Check if bot is still in guild
         guild = self.bot.get_guild(event.guild_id)
@@ -1454,6 +1859,7 @@ class Scheduler(Cog):
                         )
                         success = False
 
+                    # The repeat time is updated within send_scheduled_message() in case of edits
                     if not success or next_event.repeat is None:
                         # If the message failed to send or the message isn't on repeat, then cancel the schedule
                         async with self.db.execute(
@@ -1466,7 +1872,8 @@ class Scheduler(Cog):
                         ):
                             pass
                         await self.db.commit()
-                        logger.info("Canceled %s because it failed.", next_event)
+                        if not success:
+                            logger.info("Canceled %s because it failed.", next_event)
 
                     else:
                         # Otherwise, update the next_event_time
@@ -1627,6 +2034,7 @@ class Scheduler(Cog):
                 description=f"You do not have a scheduled message with Event ID #{event_id}.", colour=COLOUR
             )
             await ctx.reply(embed=embed)
+            # TODO: possibly add an edit button, note that channel would not be able to be edited
             return
 
         event = SavedScheduleEvent.from_row(row)
@@ -1637,7 +2045,118 @@ class Scheduler(Cog):
         return
 
     @commands.guild_only()
-    @schedule.command(name="delete", aliases=["remove"])
+    @schedule.command(name="edit", aliases=["modify"])
+    @discord.app_commands.describe(
+        event_id="The event ID of the scheduled message (see `/list`).",
+        new_channel="The new channel for the message event.",
+    )
+    async def schedule_edit(
+        self,
+        ctx: commands.Context[Bot],
+        event_id: int,
+        new_channel: MessageableGuildChannel = None,  # type: ignore[reportGeneralTypeIssues]
+    ) -> None:
+        """Edit a previously scheduled message event.
+        `event_id` - The event ID of the scheduled message (see `/list`).
+        `new_channel` - The new channel for the message event.
+
+        Due to internal limitations, schedule time cannot be edited.
+        To change the time, you will need to delete and re-create the scheduled event.
+        """
+        logger.debug("%s is trying to edit schedule %d.", ctx.author, event_id)
+
+        if not ctx.guild:
+            raise ValueError("Shouldn't be None here.")
+
+        if new_channel is not None:
+            if not isinstance(ctx.author, discord.Member):
+                raise ValueError("How does a non-member run this command?")
+
+            if not isinstance(ctx.me, discord.Member):
+                raise ValueError("Why am I not a member?")
+
+            # Check if the user has permission
+            perms = new_channel.permissions_for(ctx.author)
+            if not perms.read_messages or not perms.send_messages:
+                logger.debug("Author has no send or read messages perms for edit channel.")
+                embed = discord.Embed(
+                    description=f"You must have **send messages** permissions in {new_channel.mention}.",
+                    colour=COLOUR,
+                )
+                await ctx.reply(embed=embed)
+                return
+            # Check if the bot has permission
+            perms = new_channel.permissions_for(ctx.me)
+            if not perms.read_messages or not perms.send_messages:
+                logger.debug("Bot has no send or read messages perms for edit channel.")
+                embed = discord.Embed(
+                    description=f"I don't have permission in {new_channel.mention}.", colour=COLOUR
+                )
+                await ctx.reply(embed=embed)
+                return
+
+        async with self.db.execute(
+            r"""
+                SELECT *
+                    FROM Scheduler
+                    WHERE canceled=0
+                        AND id=$id
+                        AND author_id=$author_id
+                        AND guild_id=$guild_id
+                    LIMIT 1
+            """,
+            {"id": event_id, "author_id": ctx.author.id, "guild_id": ctx.guild.id},
+        ) as cur:
+            row = await cur.fetchone()
+        if row is None:
+            logger.debug("No scheduled messages found.")
+            embed = discord.Embed(
+                description=f"You do not have a scheduled message with Event ID #{event_id}.", colour=COLOUR
+            )
+            await ctx.reply(embed=embed)
+            return
+
+        original_event = SavedScheduleEvent.from_row(row)
+
+        if new_channel is None:
+            # Check if channel still exists
+            new_channel = cast(MessageableGuildChannel, ctx.guild.get_channel_or_thread(original_event.channel_id))
+            if not new_channel:
+                logger.warning("Event with ID %d channel not found.", original_event.id)
+                embed = discord.Embed(
+                    description=f"It seems the original channel <#{original_event.channel_id}> no longer exists.",
+                    colour=COLOUR,
+                )
+                await ctx.reply(embed=embed)
+                return
+            if not hasattr(new_channel, "send"):
+                logger.warning("Event with ID %d channel is not a messageable channel.", original_event.id)
+                embed = discord.Embed(
+                    description=f"It seems the original channel <#{original_event.channel_id}> no longer exists.",
+                    colour=COLOUR,
+                )
+                await ctx.reply(embed=embed)
+                return
+
+        raw_values = RawScheduleModalValues.from_event(original_event)
+        # If prefixed command is used, send a button
+        if ctx.interaction is None:
+            embed = discord.Embed(
+                description=f"Click the button below to edit scheduled message with Event ID #{event_id}.",
+                colour=COLOUR,
+            )
+            await ctx.reply(
+                embed=embed,
+                view=ScheduleEditView(self, ctx.author, new_channel, raw_values, original_event=original_event),
+            )
+        else:
+            # Otherwise, directly open the modal
+            await ctx.interaction.response.send_modal(
+                get_schedule_edit_modal(raw_values)(self, new_channel, original_event)
+            )
+
+    @commands.guild_only()
+    @schedule.command(name="delete", aliases=["remove", "unschedule"])
     @discord.app_commands.describe(event_id="The event ID of the scheduled message (see `/list`).")
     async def schedule_delete(self, ctx: commands.Context[Bot], event_id: int) -> None:
         """Delete a previously scheduled message event.
