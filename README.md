@@ -1,20 +1,30 @@
-[![Contributors][contributors-shield]][contributors-url]
-[![Forks][forks-shield]][forks-url]
-[![Stargazers][stars-shield]][stars-url]
-[![Issues][issues-shield]][issues-url]
-[![MIT License][license-shield]][license-url]
-[![pre-commit][pre-commit-shield]][pre-commit-url]
-[![Docker Version][docker-version-shield]][docker-version-url]
-
-
 <!-- PROJECT LOGO -->
 <br />
-<!-- <div align="center">
+<div align="center">
+
   <a href="https://github.com/Taaku18/discord-message-scheduler">
-    <img src="logo.png" alt="Logo" width="80" height="80">
-  </a> -->
+    <img src="docs/logo-white.svg" alt="Logo" width="180" height="180">
+  </a>
 
 <h3 align="center">Discord Message Scheduler</h3>
+
+
+<p align="center">
+    <a href="https://github.com/Taaku18/discord-message-scheduler/graphs/contributors" alt="Contributors">
+        <img src="https://img.shields.io/github/contributors/Taaku18/discord-message-scheduler.svg?style=for-the-badge" /></a>
+    <a href="https://github.com/Taaku18/discord-message-scheduler/network/members" alt="Forks">
+        <img src="https://img.shields.io/github/forks/Taaku18/discord-message-scheduler.svg?style=for-the-badge" /></a>
+    <a href="https://github.com/Taaku18/discord-message-scheduler/stargazers" alt="Stars">
+        <img src="https://img.shields.io/github/stars/Taaku18/discord-message-scheduler.svg?style=for-the-badge" /></a>
+    <a href="https://github.com/Taaku18/discord-message-scheduler/issues" alt="Issues">
+        <img src="https://img.shields.io/github/issues/Taaku18/discord-message-scheduler.svg?style=for-the-badge" /></a>
+    <a href="https://github.com/Taaku18/discord-message-scheduler/blob/master/LICENSE.txt" alt="License">
+        <img src="https://img.shields.io/github/license/Taaku18/discord-message-scheduler.svg?style=for-the-badge" /></a>
+    <a href="https://github.com/pre-commit/pre-commit" alt="pre-commit">
+        <img src="https://img.shields.io/badge/pre--commit-enabled-brightgreen?logo=pre-commit&style=for-the-badge" /></a>
+    <a href="https://hub.docker.com/r/taaku18/dms/tags" alt="Docker Version">
+        <img src="https://img.shields.io/docker/v/taaku18/dms?logo=docker&style=for-the-badge" /></a>
+</p>
 
   <p align="center">
     A simple Discord Bot that can send scheduled messages.
@@ -400,20 +410,6 @@ Project Link: [https://github.com/Taaku18/discord-message-scheduler](https://git
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
 
-[contributors-shield]: https://img.shields.io/github/contributors/Taaku18/discord-message-scheduler.svg?style=for-the-badge
-[contributors-url]: https://github.com/Taaku18/discord-message-scheduler/graphs/contributors
-[forks-shield]: https://img.shields.io/github/forks/Taaku18/discord-message-scheduler.svg?style=for-the-badge
-[forks-url]: https://github.com/Taaku18/discord-message-scheduler/network/members
-[stars-shield]: https://img.shields.io/github/stars/Taaku18/discord-message-scheduler.svg?style=for-the-badge
-[stars-url]: https://github.com/Taaku18/discord-message-scheduler/stargazers
-[issues-shield]: https://img.shields.io/github/issues/Taaku18/discord-message-scheduler.svg?style=for-the-badge
-[issues-url]: https://github.com/Taaku18/discord-message-scheduler/issues
-[license-shield]: https://img.shields.io/github/license/Taaku18/discord-message-scheduler.svg?style=for-the-badge
-[license-url]: https://github.com/Taaku18/discord-message-scheduler/blob/master/LICENSE.txt
-[pre-commit-shield]: https://img.shields.io/badge/pre--commit-enabled-brightgreen?logo=pre-commit&style=for-the-badge
-[pre-commit-url]: https://github.com/pre-commit/pre-commit
-[docker-version-shield]: https://img.shields.io/docker/v/taaku18/dms?logo=docker&style=for-the-badge
-[docker-version-url]: https://hub.docker.com/r/taaku18/dms/tags
 [docker-pulls-shield]: https://img.shields.io/docker/pulls/taaku18/dms?color=E78963
 [docker-pulls-url]: https://hub.docker.com/r/taaku18/dms
 [docker-size-shield]: https://img.shields.io/docker/image-size/taaku18/dms?color=6661AB
