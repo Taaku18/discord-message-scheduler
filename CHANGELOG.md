@@ -75,7 +75,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Initial code base for the bot
 
 
-[Unreleased]: https://github.com/Taaku18/discord-message-scheduler/compare/v1.2.2...HEAD
+[Unreleased]: https://github.com/Taaku18/discord-message-scheduler/compare/v1.2.3...HEAD
+[1.2.3]: https://github.com/Taaku18/discord-message-scheduler/compare/v1.2.2...v1.2.3
 [1.2.2]: https://github.com/Taaku18/discord-message-scheduler/compare/v1.2.1...v1.2.2
 [1.2.1]: https://github.com/Taaku18/discord-message-scheduler/compare/v1.2...v1.2.1
 [1.2]: https://github.com/Taaku18/discord-message-scheduler/compare/v1.1.1...v1.2
