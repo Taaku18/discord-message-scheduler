@@ -94,8 +94,7 @@ Discord Message Scheduler provides a convenient bot interface to grant users the
 
 ### Built With
 
-* [![Python][Python.org]][Python-url]
-* [![discord.py][Discord.py]][Discordpy-url]
+[![Python][Python.org]][Python-url] [![discord.py][Discord.py]][Discordpy-url]
 
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
