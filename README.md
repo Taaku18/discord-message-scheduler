@@ -18,12 +18,12 @@
         <img alt="Forks" src="https://img.shields.io/github/forks/Taaku18/discord-message-scheduler.svg?style=for-the-badge" /></a>
     <a href="https://github.com/Taaku18/discord-message-scheduler/stargazers">
         <img alt="Stars" src="https://img.shields.io/github/stars/Taaku18/discord-message-scheduler.svg?style=for-the-badge&color=yellowgreen" /></a>
-    <a href="https://github.com/Taaku18/discord-message-scheduler/actions">
-        <img alt="GitHub branch checks state" src="https://img.shields.io/github/checks-status/taaku18/discord-message-scheduler/main?style=for-the-badge" /></a>
     <a href="https://github.com/Taaku18/discord-message-scheduler/issues">
         <img alt="Issues" src="https://img.shields.io/github/issues/Taaku18/discord-message-scheduler.svg?style=for-the-badge" /></a>
     <a href="https://github.com/Taaku18/discord-message-scheduler/blob/master/LICENSE.txt">
         <img alt="License" src="https://img.shields.io/github/license/Taaku18/discord-message-scheduler.svg?style=for-the-badge" /></a>
+    <a href="https://www.codefactor.io/repository/github/taaku18/discord-message-scheduler">
+        <img alt="Code Factor code quality" src="https://img.shields.io/codefactor/grade/github/taaku18/discord-message-scheduler/main?style=for-the-badge" /></a>
     <a href="https://github.com/pre-commit/pre-commit">
         <img alt="pre-commit" src="https://img.shields.io/badge/pre--commit-enabled-brightgreen?logo=pre-commit&style=for-the-badge" /></a>
     <a href="https://hub.docker.com/r/taaku18/dms/tags">
