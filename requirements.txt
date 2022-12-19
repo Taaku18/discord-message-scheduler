@@ -1,4 +1,4 @@
-aiosqlite~=0.17
+aiosqlite~=0.18
 arrow~=1.2
 dateparser @ git+https://github.com/scrapinghub/dateparser@0ed979e
 discord.py @ git+https://github.com/Rapptz/discord.py@d4cc8d30
