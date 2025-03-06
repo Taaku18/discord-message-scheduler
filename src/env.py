@@ -3,6 +3,7 @@ env.py
 
 Parse environment variables from .env file.
 """
+
 from __future__ import annotations
 
 import logging

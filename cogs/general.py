@@ -3,6 +3,7 @@ general.py
 
 A collection of general commands.
 """
+
 from __future__ import annotations
 
 import logging

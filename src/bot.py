@@ -3,6 +3,7 @@ bot.py
 
 The main Bot class.
 """
+
 from __future__ import annotations
 
 import logging

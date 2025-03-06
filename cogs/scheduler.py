@@ -3,6 +3,7 @@ scheduler.py
 
 Scheduler category and commands.
 """
+
 from __future__ import annotations
 
 import asyncio
@@ -285,15 +286,13 @@ if TYPE_CHECKING:  # TODO: find another way to fix type checking
             self.channel = channel
             super().__init__()
 
-        def sanitize_response(self, interaction: discord.Interaction) -> SanitizedScheduleEvent:
-            ...
+        def sanitize_response(self, interaction: discord.Interaction) -> SanitizedScheduleEvent: ...
 
         @property
         def acceptable_formats(self) -> list[str]:
             return []
 
-        async def on_submit(self, interaction: discord.Interaction) -> None:
-            ...
+        async def on_submit(self, interaction: discord.Interaction) -> None: ...
 
     class ScheduleEditModal(discord.ui.Modal, title="Schedule Editor"):
         message: discord.ui.TextInput[ScheduleModal]
@@ -307,11 +306,9 @@ if TYPE_CHECKING:  # TODO: find another way to fix type checking
             self.original_event = original_event
             super().__init__()
 
-        def sanitize_response(self, interaction: discord.Interaction) -> SanitizedScheduleEvent:
-            ...
+        def sanitize_response(self, interaction: discord.Interaction) -> SanitizedScheduleEvent: ...
 
-        async def on_submit(self, interaction: discord.Interaction) -> None:
-            ...
+        async def on_submit(self, interaction: discord.Interaction) -> None: ...
 
 
 def _parse_repeat(raw_repeat: str | None) -> float | None:

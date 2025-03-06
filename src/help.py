@@ -3,6 +3,7 @@ help.py
 
 Implements the "help" command.
 """
+
 from __future__ import annotations
 
 import itertools
