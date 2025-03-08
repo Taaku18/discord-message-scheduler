@@ -3,6 +3,7 @@ scheduler.py
 
 Scheduler category and commands.
 """
+
 from __future__ import annotations
 
 import asyncio
@@ -285,15 +286,13 @@ if TYPE_CHECKING:  # TODO: find another way to fix type checking
             self.channel = channel
             super().__init__()
 
-        def sanitize_response(self, interaction: discord.Interaction) -> SanitizedScheduleEvent:
-            ...
+        def sanitize_response(self, interaction: discord.Interaction) -> SanitizedScheduleEvent: ...
 
         @property
         def acceptable_formats(self) -> list[str]:
             return []
 
-        async def on_submit(self, interaction: discord.Interaction) -> None:
-            ...
+        async def on_submit(self, interaction: discord.Interaction) -> None: ...
 
     class ScheduleEditModal(discord.ui.Modal, title="Schedule Editor"):
         message: discord.ui.TextInput[ScheduleModal]
@@ -307,11 +306,9 @@ if TYPE_CHECKING:  # TODO: find another way to fix type checking
             self.original_event = original_event
             super().__init__()
 
-        def sanitize_response(self, interaction: discord.Interaction) -> SanitizedScheduleEvent:
-            ...
+        def sanitize_response(self, interaction: discord.Interaction) -> SanitizedScheduleEvent: ...
 
-        async def on_submit(self, interaction: discord.Interaction) -> None:
-            ...
+        async def on_submit(self, interaction: discord.Interaction) -> None: ...
 
 
 def _parse_repeat(raw_repeat: str | None) -> float | None:
@@ -350,10 +347,10 @@ def get_schedule_modal(defaults: RawScheduleModalValues | None = None) -> Type[S
     :param defaults: A RawScheduleModalValues object that will be used to populate default fields.
     :return: A class ScheduleModal with defaults.
     """
-    message_default = cast(str | None, defaults and defaults.message)
-    time_default = cast(str | None, defaults and defaults.time)
-    timezone_default = cast(str, defaults and defaults.timezone or DEFAULT_TIMEZONE)
-    repeat_default = cast(str, defaults and defaults.repeat or "0")
+    message_default = defaults and defaults.message
+    time_default = defaults and defaults.time
+    timezone_default = defaults and defaults.timezone or DEFAULT_TIMEZONE
+    repeat_default = defaults and defaults.repeat or "0"
 
     # noinspection PyShadowingNames
     class ScheduleModal(discord.ui.Modal, title="Schedule Creator"):
@@ -403,7 +400,7 @@ def get_schedule_modal(defaults: RawScheduleModalValues | None = None) -> Type[S
             """
 
             logger.debug("Sanitizing schedule event.")
-            if self.time.value is None or self.message.value is None:
+            if not self.time.value or not self.message.value:
                 raise ValueError("time and message cannot be None here since they are non-optional.")
 
             if not isinstance(interaction.user, discord.Member):
@@ -417,10 +414,10 @@ def get_schedule_modal(defaults: RawScheduleModalValues | None = None) -> Type[S
                     with warnings.catch_warnings():  # will raise exception is an unknown timezone is detected
                         # noinspection PyUnresolvedReferences
                         warnings.simplefilter(
-                            "error", du_parser.UnknownTimezoneWarning  # type: ignore[reportGeneralTypeIssues]
+                            "error", du_parser.UnknownTimezoneWarning
                         )  # exists, but editor is weird
                         naive_time = du_parser.parse(self.time.value)
-                except du_parser.UnknownTimezoneWarning as e:  # type: ignore[reportGeneralTypeIssues]
+                except du_parser.UnknownTimezoneWarning as e:
                     raise BadTimezone(None) from e
                 except du_parser.ParserError as e:  # fails to parse time
                     raise BadTimeString(self.time.value) from e
@@ -447,7 +444,7 @@ def get_schedule_modal(defaults: RawScheduleModalValues | None = None) -> Type[S
                             "TIMEZONE": self.timezone.value,
                             "RETURN_AS_TIMEZONE_AWARE": True,
                             "DEFAULT_LANGUAGES": TIME_LANG,
-                        },  # type: ignore[reportGeneralTypeIssues]
+                        },  # type: ignore[reportArgumentType]
                     )
                 except Exception as e:
                     if e.__class__.__name__ == "UnknownTimeZoneError":  # invalid timezone
@@ -611,8 +608,8 @@ def get_schedule_edit_modal(defaults: RawScheduleModalValues | None = None) -> T
     :param defaults: A RawScheduleModalValues object that will be used to populate default fields.
     :return: A class ScheduleEditModal with defaults.
     """
-    message_default = cast(str | None, defaults and defaults.message)
-    repeat_default = cast(str, defaults and defaults.repeat or "0")
+    message_default = defaults and defaults.message
+    repeat_default = defaults and defaults.repeat or "0"
 
     # noinspection PyShadowingNames
     class ScheduleEditModal(discord.ui.Modal, title="Schedule Editor"):
@@ -657,7 +654,7 @@ def get_schedule_edit_modal(defaults: RawScheduleModalValues | None = None) -> T
             """
 
             logger.debug("Sanitizing schedule edit event.")
-            if self.message.value is None:
+            if not self.message.value:
                 raise ValueError("Message cannot be None here since they are non-optional.")
 
             if not isinstance(interaction.user, discord.Member):
@@ -1825,7 +1822,7 @@ class Scheduler(Cog):
                 )
             allowed_mentions = discord.AllowedMentions.none()
         # channel has .send since invalid channel typed are filtered above with hasattr(channel, 'send')
-        await channel.send(  # type: ignore[reportGeneralTypeIssues]
+        await channel.send(  # type: ignore[reportUnknownMemberType,reportAttributeAccessIssue]
             event.message, allowed_mentions=allowed_mentions
         )
         # TODO: add a "report abuse" feature/command, save all sent msg in a db table with the id
@@ -1960,7 +1957,7 @@ class Scheduler(Cog):
         self,
         ctx: commands.Context[Bot],
         *,
-        channel: MessageableGuildChannel = None,  # type: ignore[reportGeneralTypeIssues]
+        channel: MessageableGuildChannel | None = None,
     ) -> None:
         """Schedules a message for the future.
         `channel` - The channel for the scheduled message.
@@ -1976,7 +1973,7 @@ class Scheduler(Cog):
         self,
         ctx: commands.Context[Bot],
         *,
-        channel: MessageableGuildChannel = None,  # type: ignore[reportGeneralTypeIssues]
+        channel: MessageableGuildChannel | None = None,
     ) -> None:
         """Schedules a message for the future.
         `channel` - The channel for the scheduled message.
@@ -1992,7 +1989,7 @@ class Scheduler(Cog):
         self,
         ctx: commands.Context[Bot],
         *,
-        channel: MessageableGuildChannel = None,  # type: ignore[reportGeneralTypeIssues]
+        channel: MessageableGuildChannel | None = None,
     ) -> None:
         """List your scheduled messages.
         `channel` - The channel to list scheduled messages.
@@ -2054,7 +2051,7 @@ class Scheduler(Cog):
         self,
         ctx: commands.Context[Bot],
         event_id: int,
-        new_channel: MessageableGuildChannel = None,  # type: ignore[reportGeneralTypeIssues]
+        new_channel: MessageableGuildChannel | None = None,
     ) -> None:
         """Edit a previously scheduled message event.
         `event_id` - The event ID of the scheduled message (see `/list`).

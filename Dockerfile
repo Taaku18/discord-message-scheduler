@@ -1,4 +1,4 @@
-FROM python:3.10-slim as py
+FROM python:3.13-slim AS py
 
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
@@ -8,7 +8,7 @@ RUN apt-get update && \
     apt-get install -y --no-install-recommends g++ && \
     rm -rf /var/lib/apt/lists/*
 
-FROM py as build
+FROM py AS build
 
 RUN apt-get update && \
     apt-get install -y --no-install-recommends curl git && \

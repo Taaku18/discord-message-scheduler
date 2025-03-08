@@ -3,6 +3,7 @@ bot.py
 
 The main Bot class.
 """
+
 from __future__ import annotations
 
 import logging
@@ -91,6 +92,7 @@ class Bot(commands.Bot):
         discord.ForumChannel.__name__: "forum",
         discord.StageChannel.__name__: "stage channel",
         int.__name__: "number",
+        float.__name__: "number",
     }
 
     @classmethod
@@ -104,7 +106,7 @@ class Bot(commands.Bot):
                 name = x.__class__.__name__
         return cls._TYPE_CLEAN_NAME.get(name, name)
 
-    async def on_command_error(  # type: ignore[reportIncompatibleMethodOverride]
+    async def on_command_error(
         self,
         context: commands.Context[Bot],
         exception: commands.CommandError,

@@ -3,16 +3,18 @@ env.py
 
 Parse environment variables from .env file.
 """
+
 from __future__ import annotations
 
 import logging
 import os
 import time
-from distutils.util import strtobool
 
-from dotenv import load_dotenv  # type: ignore[reportUnknownVariableType]
+from dotenv import load_dotenv
 
 from discord import Colour
+
+from .util import strtobool
 
 __all__ = [
     "DEBUG_MODE",
@@ -117,7 +119,7 @@ try:
             settings={
                 "TIMEZONE": DEFAULT_TIMEZONE,
                 "DEFAULT_LANGUAGES": ["en"],
-            },  # type: ignore[reportGeneralTypeIssues]
+            },  # type: ignore[reportArgumentType]
         )  # test the timezone by attempting to get "now"
     except Exception as e:
         logger.warning("Timezone may be invalid, reverting default timezone to %s.", _DEFAULT_TIMEZONE, exc_info=e)

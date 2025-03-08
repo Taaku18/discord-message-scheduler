@@ -3,6 +3,7 @@ logging.py
 
 Configure the logging module for the bot and discord.py internals.
 """
+
 from __future__ import annotations
 
 import logging

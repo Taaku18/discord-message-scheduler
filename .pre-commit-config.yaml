@@ -1,10 +1,11 @@
 repos:
   - repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: v4.3.0
+    rev: v5.0.0
     hooks:
       - id: check-ast
       - id: check-case-conflict
       - id: check-docstring-first
+      - id: check-illegal-windows-names
       # - id: check-json
       - id: check-symlinks
       - id: check-toml
@@ -21,16 +22,16 @@ repos:
       - id: trailing-whitespace
 
   - repo: https://github.com/psf/black
-    rev: 22.6.0
+    rev: 25.1.0
     hooks:
       - id: black
 
   - repo: https://github.com/pdm-project/pdm
-    rev: 2.1.1
+    rev: 2.22.3
     hooks:
       - id: pdm-export
         args: ["--pyproject", "--without-hashes", "--prod", "-G:all", "-o", "requirements.txt"]
         files: ^pyproject.toml$
 
 default_language_version:
-    python: python3.10
+    python: python3.13

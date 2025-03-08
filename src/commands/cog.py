@@ -3,6 +3,7 @@ cog.py
 
 A subclass of discord.py's command ext Cog.
 """
+
 from __future__ import annotations
 
 import logging
