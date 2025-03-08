@@ -16,7 +16,7 @@ from .env import PREFIX, COLOUR
 
 if TYPE_CHECKING:
     # noinspection PyProtectedMember
-    from discord.ext.commands.help import Command, Cog  # type: ignore[reportPrivateImportUsage]
+    from discord.ext.commands.help import Command, Cog  # type: ignore[reportPrivateImportUsage,reportMissingTypeStubs]
     from .bot import Bot
 
 
@@ -26,7 +26,7 @@ class HelpCmd(commands.DefaultHelpCommand):
     def __init__(self) -> None:
         kwargs = {
             "paginator": commands.Paginator(prefix=None, suffix=None),  # no prefix/suffix since we're using embeds
-            "dm_help": None,  # <1000 guild, >1000 in dm
+            "dm_help": None,  # length <1000 guild, >1000 in dm
             "dm_help_threshold": 1000,
             "commands_heading": "**Additional Commands:**",
             "command_attrs": {"hidden": True},  # don't show help command in help
@@ -78,7 +78,7 @@ class HelpCmd(commands.DefaultHelpCommand):
             embed = discord.Embed(description="Check your DM.", colour=COLOUR)
             await self.context.channel.send(embed=embed)
 
-        bot: Bot = self.context.bot  # type: ignore[reportGeneralTypeIssues]
+        bot: Bot = self.context.bot  # type: ignore[reportAssignmentType]
 
         for i, page in enumerate(self.paginator.pages, start=1):
             embed = discord.Embed(description=page, colour=COLOUR)
@@ -153,8 +153,8 @@ class HelpCmd(commands.DefaultHelpCommand):
                 entries.append(parent.name)  # type: ignore  # dpy type issue
             else:
                 entries.append(parent.name + " " + parent.signature)  # type: ignore  # dpy type issue
-            parent = parent.parent  # type: ignore
-        parent_sig = " ".join(reversed(entries))
+            parent = parent.parent  # type: ignore  # dpy type issue
+        parent_sig = " ".join(reversed(entries))  # type: ignore  # dpy type issue
 
         if len(command.aliases) > 0:
             aliases = "|".join(command.aliases)
@@ -185,3 +185,6 @@ class HelpCmd(commands.DefaultHelpCommand):
                 for line in command.help.splitlines():
                     self.paginator.add_line(line)
                 self.paginator.add_line()
+
+        if self.show_parameter_descriptions:
+            self.add_command_arguments(command)  # TODO: Need to inherit this method from parent
