@@ -4,7 +4,7 @@
 aiosqlite==0.21
 arrow==1.3
 dateparser==1.2.1
-discord-py==2.5.2
+discord-py==2.6.2
 discord-py[speed]==2.5.2
 packaging>=24.2
 python-dateutil~=2.9
