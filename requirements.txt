@@ -9,6 +9,6 @@ discord-py[speed]==2.5.2
 packaging>=24.2
 python-dateutil~=2.9
 python-dotenv<1.1,>=1.0.1
-rich~=13.9.4
+rich~=14.2.0
 tomli~=2.2.1
 uvloop>=0.21.0; platform_system != "Windows"
